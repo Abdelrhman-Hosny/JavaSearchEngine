@@ -1,8 +1,5 @@
 package Crawler;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
