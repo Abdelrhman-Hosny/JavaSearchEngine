@@ -27,20 +27,28 @@ public class Word {
         // take Category enum
         if(Category == BlockCategories.H1){
             h1++;
+            count++;
         }else if(Category == BlockCategories.H2){
             h2++;
+            count++;
         }else if(Category == BlockCategories.H3){
             h3++;
+            count++;
         }else if(Category == BlockCategories.H4_H5_H6){
             h4_6++;
+            count++;
         }else if(Category == BlockCategories.TITLE){
             title++;
+            count++;
         }else if(Category == BlockCategories.NORMAL_TEXT){
             text++;
+            count++;
         }else if(Category == BlockCategories.BOLD){
+            // will not increase count of word in bold since i already counted it in outer tag
+                // ex : <p> i am <b>computer </b> </p>
+                // here computer already counted in <p> so wont count it again
             bold++;
         }
-        count++;
     }
     public static void main(String[] args) {
         BlockCategories b = BlockCategories.H1;
