@@ -101,7 +101,8 @@ public class Indexer{
         if(IndexAll() == false){
             // therefore its spam 
             // will return after cleaning database since we wont need to continue and add data
-            return spamRollback(documentURL);
+            spamRollback();
+            return ;
         }        
 
         for (String key: wordHashMap.keySet()) {
