@@ -38,7 +38,7 @@ public class Indexer{
                 currentWord = wordHashMap.get(_word);
             }else{
                 // it doesnt exist before so will make a new word 
-                currentWord = new Word(_word,parserObj.Url);
+                currentWord = new Word(_word,documentURL);
             }
             currentWord.Increment(Category);
             if(documentSize >= documentSizeThreshold &&
@@ -69,7 +69,6 @@ public class Indexer{
         //TODO:: maybe will need to extract url eariler here
         
         String s1 = preprocessorObj.removeStopwords(HTMLString);
-        System.out.println(s1);
         parserObj.Parse(s1);
         System.out.println("parserObj.H1 " + parserObj.H1);
         System.out.println("parserObj.H2 " + parserObj.H2);

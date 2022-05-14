@@ -50,9 +50,4 @@ public class Word {
             bold++;
         }
     }
-    public static void main(String[] args) {
-        BlockCategories b = BlockCategories.H1;
-        Word w= new Word("das") ;
-        w.Increment(b);
-    }
 }
