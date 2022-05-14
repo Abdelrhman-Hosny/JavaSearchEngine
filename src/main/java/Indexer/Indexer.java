@@ -2,8 +2,11 @@ package Indexer;
 import Preprocessing.Preprocessor;
 import java.util.HashMap;
 
+import Database.IndexerDAO;
+
 public class Indexer{
     
+    private static IndexerDAO indexerManager = new IndexerDAO();
     
     private static Preprocessor preprocessorObj = new Preprocessor();
     private static Parser parserObj = new Parser();
@@ -59,6 +62,10 @@ public class Indexer{
 
     }
 
+    public static boolean spamRollback(){
+        // since its spam -> will delete(rollback) the url in my database if added before
+        return indexerManager.delete_rollBack_Url(documentURL); 
+    }
     public static void main(String[] args) {
         String HTMLString = "<!DOCTYPE html>" + "<html>" + "<head>" + "<title>JSoup Example</title>" + "</head>" + 
         "<body><h1>HelloWorld00</h1>" + "<table><tr><td> <h1>i  we are HelloWorld</h1><h1>HelloWorld2</h1></tr>" + 
@@ -92,7 +99,9 @@ public class Indexer{
 
         // index all partitions h1,h2, .....
         if(IndexAll() == false){
-            // spam
+            // therefore its spam 
+            // will return after cleaning database since we wont need to continue and add data
+            return spamRollback(documentURL);
         }        
 
         for (String key: wordHashMap.keySet()) {
@@ -103,6 +112,9 @@ public class Indexer{
             +" value.bold "  + value.bold
             );
         }
-
+        boolean successTransaction = indexerManager.InsertWordIndex(wordHashMap, "google.com");
+        
+        // just testing deletion
+        // boolean successRollback = indexerManager.delete_rollBack_Url("google.com");
     }
 }
