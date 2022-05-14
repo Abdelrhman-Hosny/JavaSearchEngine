@@ -3,16 +3,26 @@ import Preprocessing.Preprocessor;
 import java.util.HashMap;
 
 public class Indexer{
- 
-    static Preprocessor preprocessorObj = new Preprocessor();
-    static Parser parserObj = new Parser();
     
-    static HashMap<String, Word> wordHashMap = new HashMap<String, Word>();
+    
+    private static Preprocessor preprocessorObj = new Preprocessor();
+    private static Parser parserObj = new Parser();
+    private static double spamPercentage = 0.4; // if certain word exceed that percentage report spam
+    
+    //TODO :: REMOVE OR NOT ??
+    // we will consider spam if document > certain size 
+            // as if document is 20 words and word present like 5 times thats not spam
+            // so we will set a threshold of 100 word/document for ex for spamming
+    private static int documentSizeThreshold = 100;
+    private static int documentSize = 0;
+
+    
+    private static HashMap<String, Word> wordHashMap = new HashMap<String, Word>();
     
     // this function take blockOftext either h1 text, or h2 ,....
     // and pass Category with it to know where does these words exists
     // these are all possible categories : TITLE,H1,H2,H3,H4_H6,TEXT,BOLD
-    public static void Index(String blockOfText, BlockCategories Category) {
+    public static boolean Index(String blockOfText, BlockCategories Category) {
         if(blockOfText.length() == 0){
             return ;
         }
@@ -26,21 +36,24 @@ public class Indexer{
             }else{
                 // it doesnt exist before so will make a new word 
                 currentWord = new Word(_word);
-
             }
             currentWord.Increment(Category);
+            if(documentSize >= documentSizeThreshold &&
+            (float)currentWord.count / WordsArray.length > spamPercentage){
+                // report spam
+                return false;
+            }
             wordHashMap.put(_word, currentWord);
         }
+        return true;
     }
-    public static void IndexAll(){
-        Index(parserObj.H1, BlockCategories.H1);
-        Index(parserObj.H2, BlockCategories.H2);
-        Index(parserObj.H3, BlockCategories.H3);
-        Index(parserObj.remainingHeaders, BlockCategories.H4_H5_H6);
-        Index(parserObj.Title, BlockCategories.TITLE);
-        Index(parserObj.normalText, BlockCategories.NORMAL_TEXT);
-        Index(parserObj.Bolded_inside_normalText, BlockCategories.BOLD);
-        return;
+    public static boolean IndexAll(){
+        // if anyone returned false it will stop since they are anded
+        return Index(parserObj.H1, BlockCategories.H1) && Index(parserObj.H2, BlockCategories.H2)
+        && Index(parserObj.H3, BlockCategories.H3) && Index(parserObj.remainingHeaders, BlockCategories.H4_H5_H6)
+        && Index(parserObj.Title, BlockCategories.TITLE) && Index(parserObj.normalText, BlockCategories.NORMAL_TEXT)
+        && Index(parserObj.Bolded_inside_normalText, BlockCategories.BOLD);
+
     }
 
     public static void main(String[] args) {
@@ -60,9 +73,21 @@ public class Indexer{
         System.out.println("parserObj.Title " + parserObj.Title);
         System.out.println("parserObj.normalText " + parserObj.normalText);
         System.out.println("parserObj.Bolded_inside_normalText " + parserObj.Bolded_inside_normalText);
-        
+
+        // getting total number of words in document
+        // to check spam if certain word is present > certain percentage in document -> report spam
+        // we will consider spam if document > certain size 
+            // as if document is 20 words and word present like 5 times thats not spam
+            // so we will set a threshold of 100 word/document for ex for spamming
+        documentSize = parserObj.H1.split(" ").length + parserObj.H2.split(" ").length + 
+                parserObj.H3.split(" ").length + parserObj.remainingHeaders.split(" ").length + 
+                parserObj.Title.split(" ").length + parserObj.normalText.split(" ").length;
+
+
         // index all partitions h1,h2, .....
-        IndexAll();        
+        if(IndexAll() == false){
+            // spam
+        }        
 
         for (String key: wordHashMap.keySet()) {
             Word value = wordHashMap.get(key);
