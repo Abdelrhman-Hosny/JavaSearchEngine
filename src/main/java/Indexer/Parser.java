@@ -6,6 +6,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 public class Parser {
+    public String Url; // url of page
     public String H1; // contain text in h1 
     public String H2; // contain text in h2
     public String H3; // contain text in h3
@@ -32,7 +33,7 @@ public class Parser {
             return;
         
         Document html = Jsoup.parse(preprocessedHtml);
-        
+        Url = html.location();
         H1 = processTextBlock(html.select("h1").text()); // will select h1 and remove all symbols from it
         H2 = processTextBlock(html.select("h2").text());
         H3 = processTextBlock(html.select("h3").text());
