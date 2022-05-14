@@ -13,6 +13,7 @@ public class Crawler {
 
 
     public static void crawl() throws IOException {
+        RobotsChecker robotsChecker = new RobotsChecker();
         HashSet<String> visited = new HashSet<>();
         HashSet<String> toVisit = CrawlerUtils.ReadInitialSeed(SEED_PATH);
 
@@ -24,22 +25,24 @@ public class Crawler {
             toVisit.remove(url);
 
             url = CrawlerUtils.NormalizeUrl(url);
-            if (! visited.contains(url)) {
-                crawlURL(url, visited, toVisit);
+            if (! visited.contains(url) && !url.endsWith("robots.txt")) {
+                crawlURL(url, visited, toVisit, robotsChecker);
                 visited.add(url);
             }
 
         }
 
+        System.out.println("Visited: " + visited.size());
         for (  String url : visited) {
             System.out.println(url);
         }
 
     }
-    public static void crawlURL(String url, HashSet<String> visited, HashSet<String> toVisit) {
+    public static void crawlURL(String url, HashSet<String> visited, HashSet<String> toVisit, RobotsChecker robotsChecker){
         // reading HTML document from given URL
 
         // Check for Robots.txt
+        if (! robotsChecker.check(url)) return;
 
         // getting all links from document
         Elements links = CrawlerUtils.GetAllLinks(url);
@@ -71,11 +74,11 @@ public class Crawler {
     }
 
     public static void main(String[] args) throws IOException {
-//        crawl();
-        for (int i = 0; i < 10; i++) {
-            URL x = new URL("https://www.google.com");
-            x.openConnection();
-            System.out.println(x.getHost());
-        }
+        crawl();
+//        for (int i = 0; i < 10; i++) {
+//            URL x = new URL("https://www.google.com");
+//            x.openConnection();
+//            System.out.println(x.getHost());
+//        }
     }
 }
