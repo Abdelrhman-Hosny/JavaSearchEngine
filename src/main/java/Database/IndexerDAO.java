@@ -7,8 +7,14 @@ import Indexer.Word;
 public class IndexerDAO extends BaseDAO {
     
     public boolean InsertWordIndex(HashMap<String,Word> allWords , String url) {
-        CallableStatement cstmt;
         try {
+            // since we can do incremental update
+            // so we need to check that we delete url before working due to some reasons:
+            // as page is updated and maybe words are outdated
+            // will have same (word,url) combination which will damage primary key constraints
+            delete_rollBack_Url(url);
+       
+            CallableStatement cstmt;
             cstmt = connection.prepareCall("{call Add_Index_Entry(?,?,?,?,?,?,?,?,?)}");
             for (String key : allWords.keySet()) {
 
