@@ -1,24 +1,20 @@
 package Crawler;
 
-import Crawler.CrawlerUtils.*;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashSet;
-import java.util.Objects;
+
+import static Constants.Constants.*;
 
 public class Crawler {
 
-    public static String userAgent = "Crawler3505";
-    public static Integer MAX_LINKS_PER_DOC = 3, MAX_DOCS = 10;
 
     public static void crawl() throws IOException {
         HashSet<String> visited = new HashSet<>();
-        HashSet<String> toVisit = CrawlerUtils.ReadInitialSeed("src/main/resources/InitialSeed.txt");
+        HashSet<String> toVisit = CrawlerUtils.ReadInitialSeed(SEED_PATH);
 
         // while there are still links to visit
         // and the visited links haven't exceeded the limit
@@ -26,6 +22,8 @@ public class Crawler {
 
             String url = toVisit.iterator().next();
             toVisit.remove(url);
+
+            url = CrawlerUtils.NormalizeUrl(url);
             if (! visited.contains(url)) {
                 crawlURL(url, visited, toVisit);
                 visited.add(url);
@@ -40,31 +38,12 @@ public class Crawler {
     }
     public static void crawlURL(String url, HashSet<String> visited, HashSet<String> toVisit) {
         // reading HTML document from given URL
-        Document document;
-        try {
-            Connection connection = Jsoup.connect(url).timeout(10000).maxBodySize(0).userAgent(userAgent);
-
-            // get domain name of website
-
-            Connection.Response response = connection.execute();
-
-//            System.out.println(response.contentType());
-            if (response.contentType() != null && !Objects.requireNonNull(response.contentType()).contains("text/html")) {
-                return;
-            }
-
-            document = connection.get();
-        } catch (IOException e) {
-            System.out.println("Error: " );
-            e.printStackTrace();
-            return;
-        }
 
         // Check for Robots.txt
 
         // getting all links from document
-        Elements links = document.getElementsByTag("a");
-
+        Elements links = CrawlerUtils.GetAllLinks(url);
+        if (links == null) return;
 //        System.out.println("Links: " + links.size());
 
         HashSet<String> newLinks = new HashSet<>();
@@ -75,7 +54,7 @@ public class Crawler {
             if (relative_link.startsWith("#") || relative_link.isEmpty())
                 continue;
 
-            String abs_link = link.attr("abs:href").toLowerCase();
+            String abs_link = CrawlerUtils.NormalizeUrl(link.attr("abs:href").toLowerCase());
             if (!abs_link.startsWith("http")) continue;
 
             // check if link already visited or forbidden by robots.txt
@@ -92,6 +71,11 @@ public class Crawler {
     }
 
     public static void main(String[] args) throws IOException {
-        crawl();
+//        crawl();
+        for (int i = 0; i < 10; i++) {
+            URL x = new URL("https://www.google.com");
+            x.openConnection();
+            System.out.println(x.getHost());
+        }
     }
 }
