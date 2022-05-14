@@ -7,7 +7,8 @@ public class Preprocessor{
     
     Stemmer StemmerObj = new Stemmer();
     StopWordsRemover StopWordsRemoverObj = new StopWordsRemover();
-    public String Process(String HTMLString) {
+
+    public String removeStopwords(String HTMLString) {
         
         // will change whole html into lower case to avoid having same word multiple times in many formats  
         HTMLString = HTMLString.toLowerCase();
