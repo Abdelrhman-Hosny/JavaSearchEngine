@@ -12,9 +12,9 @@ public class Word {
     public int bold ; // no of occurences in bold  
     public int count ; // total count of word in document
 
-    public Word(String inWord){
-        // TODO : document init
+    public Word(String inWord,String inDocument){
         word = inWord;
+        document = inDocument;
         title = 0;
         h1 = 0;
         h2 = 0;
