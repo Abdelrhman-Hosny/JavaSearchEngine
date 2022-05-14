@@ -144,7 +144,7 @@ public class RobotsChecker {
                         if (line.startsWith("Disallow:")) {
                             String disallowString = line.split(":")[1].trim();
                             String disallowedUrl = incomingUrlObject.getProtocol() + "://" + incomingUrlObject.getHost() + disallowString;
-                            System.out.println("Disallow : " + disallowString);
+//                            System.out.println("Disallow : " + disallowString);
 
                             // if it is a straight match, we add it to the straight hash set
                             if (true) {
@@ -155,9 +155,9 @@ public class RobotsChecker {
                             }
                         } else if (line.startsWith("Allow:")) {
                             String allowString = line.split(":")[1].trim();
-                            System.out.println("Allow : " + allowString);
+//                            System.out.println("Allow : " + allowString);
                             String allowedUrl = incomingUrlObject.getProtocol() + "://" + incomingUrlObject.getHost() + allowString;
-                            System.out.println("Disallow : " + allowString);
+//                            System.out.println("Disallow : " + allowString);
 
                             // if it is a straight match, we add it to the straight hash set
                             if (true) {
