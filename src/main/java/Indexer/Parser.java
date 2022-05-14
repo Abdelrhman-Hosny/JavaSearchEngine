@@ -15,12 +15,16 @@ public class Parser {
     public String Bolded_inside_normalText; // contain bold-strong words
     
     public String processTextBlock(String inpuString){
+        if(inpuString.length() == 0 || inpuString == " "){
+            return "";
+        }
         // inpuString : represent set of words after choosing it from say h1, or p or whatever
         // we need it to have words only 
         // so we choose all symbols with [^a-zA-Z0-9] and replace it with space
         // we cant just replace it with "" since it maybe between 2 words : football,basketball
         // so if we removed it directly would damage our statistics
-        return StringUtil.normaliseWhitespace(inpuString.replaceAll("[^a-zA-Z0-9]", " "));
+        // also trim : to remove leading and ending spaces
+        return StringUtil.normaliseWhitespace(inpuString.replaceAll("[^a-zA-Z0-9]", " ")).trim();
     }
     
     public void Parse(String preprocessedHtml){

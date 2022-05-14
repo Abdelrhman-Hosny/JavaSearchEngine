@@ -13,6 +13,9 @@ public class Indexer{
     // and pass Category with it to know where does these words exists
     // these are all possible categories : TITLE,H1,H2,H3,H4_H6,TEXT,BOLD
     public static void Index(String blockOfText, BlockCategories Category) {
+        if(blockOfText.length() == 0){
+            return ;
+        }
         // getting each word by splitting by space
         String[] WordsArray = blockOfText.split(" ");
         for (String _word: WordsArray){
