@@ -3,7 +3,6 @@ package Indexer;
 import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 public class Parser {
     public String Url; // url of page
