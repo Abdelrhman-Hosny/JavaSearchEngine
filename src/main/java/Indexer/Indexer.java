@@ -15,6 +15,9 @@ public class Indexer{
             // so we will set a threshold of 100 word/document for ex for spamming
     private static int documentSizeThreshold = 100;
     private static int documentSize = 0;
+    
+    // TODO :: document URL
+    private static String documentURL;
 
     
     private static HashMap<String, Word> wordHashMap = new HashMap<String, Word>();
@@ -24,7 +27,7 @@ public class Indexer{
     // these are all possible categories : TITLE,H1,H2,H3,H4_H6,TEXT,BOLD
     public static boolean Index(String blockOfText, BlockCategories Category) {
         if(blockOfText.length() == 0){
-            return ;
+            return true;
         }
         // getting each word by splitting by space
         String[] WordsArray = blockOfText.split(" ");
@@ -35,7 +38,7 @@ public class Indexer{
                 currentWord = wordHashMap.get(_word);
             }else{
                 // it doesnt exist before so will make a new word 
-                currentWord = new Word(_word);
+                currentWord = new Word(_word,parserObj.Url);
             }
             currentWord.Increment(Category);
             if(documentSize >= documentSizeThreshold &&
@@ -63,6 +66,8 @@ public class Indexer{
         "<p>sadkj <b>sada</b> bndsjk <p>"+
         "<table><tr><th>eboo</th></tr><tr><td>Emil</td><td>Tobias</td><td>Linus</td></tr></table>" + "</html>";
         
+        //TODO:: maybe will need to extract url eariler here
+        
         String s1 = preprocessorObj.removeStopwords(HTMLString);
         System.out.println(s1);
         parserObj.Parse(s1);
@@ -73,7 +78,9 @@ public class Indexer{
         System.out.println("parserObj.Title " + parserObj.Title);
         System.out.println("parserObj.normalText " + parserObj.normalText);
         System.out.println("parserObj.Bolded_inside_normalText " + parserObj.Bolded_inside_normalText);
-
+        System.out.println("parserObj.Url " + parserObj.Url);
+        
+        documentURL = parserObj.Url;
         // getting total number of words in document
         // to check spam if certain word is present > certain percentage in document -> report spam
         // we will consider spam if document > certain size 
