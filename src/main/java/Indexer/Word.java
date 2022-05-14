@@ -31,11 +31,11 @@ public class Word {
             h2++;
         }else if(Category == BlockCategories.H3){
             h3++;
-        }else if(Category == BlockCategories.H4H5H6){
+        }else if(Category == BlockCategories.H4_H5_H6){
             h4_6++;
         }else if(Category == BlockCategories.TITLE){
             title++;
-        }else if(Category == BlockCategories.TEXT){
+        }else if(Category == BlockCategories.NORMAL_TEXT){
             text++;
         }else if(Category == BlockCategories.BOLD){
             bold++;
