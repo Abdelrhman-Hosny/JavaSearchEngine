@@ -1,5 +1,7 @@
 package Preprocessing;
 
+import org.jsoup.internal.StringUtil;
+
 public class StopWordsRemover {
     
     public static String removeStopwords(String toBeProcessedString){
@@ -16,7 +18,8 @@ public class StopWordsRemover {
 
         // we match whole word ex: i am ahmed -> here match i , am
         // but dont match i inside a word example : i inside playing - > so we will put boundaries by \b
-        return toBeProcessedString.replaceAll("\\b"+stopWords+"\\b", "");
+        //normaliseWhitespace : make only 1 single Whitespace since we removed many items in middle 
+        return StringUtil.normaliseWhitespace(toBeProcessedString.replaceAll("\\b"+stopWords+"\\b", ""));
     }
 
 }
