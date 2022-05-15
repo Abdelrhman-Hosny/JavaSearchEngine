@@ -5,6 +5,9 @@ import org.jsoup.internal.StringUtil;
 public class StopWordsRemover {
     
     public static String removeStopwords(String toBeProcessedString){
+        if(toBeProcessedString == "" || toBeProcessedString == " "){
+            return "";
+        }
         // some of stop words which are widely used in english so we wont save in our indexer 
         // will also remove single numbers
         String stopWords = "(i|me|my|myself|we|our|ours|ourselves|you|your|yours|yourself|yourselves"
