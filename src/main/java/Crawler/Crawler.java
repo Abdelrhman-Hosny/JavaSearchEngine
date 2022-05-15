@@ -4,7 +4,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashSet;
 
 import static Constants.Constants.*;
@@ -74,7 +73,12 @@ public class Crawler {
     }
 
     public static void main(String[] args) throws IOException {
+        long startTime = System.nanoTime();
         crawl();
+        long stopTime = System.nanoTime();
+        long elapsedTime = stopTime - startTime;
+        elapsedTime /= 1_000_000_000;
+        System.out.println("Elapsed time: " + elapsedTime);
 //        for (int i = 0; i < 10; i++) {
 //            URL x = new URL("https://www.google.com");
 //            x.openConnection();
