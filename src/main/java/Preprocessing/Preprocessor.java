@@ -9,11 +9,13 @@ public class Preprocessor{
     StopWordsRemover StopWordsRemoverObj = new StopWordsRemover();
 
     public String removeStopwords(String HTMLString) {
+        if(HTMLString=="" || HTMLString == " ")
+            return "";
         
         // will change whole html into lower case to avoid having same word multiple times in many formats  
         HTMLString = HTMLString.toLowerCase();
-        String processed = StopWordsRemover.removeStopwords(HTMLString);
-        return processed;
+        return StopWordsRemover.removeStopwords(HTMLString);
+        
 
         // TODO::
         // we will handle symbols after parsing since before parsing we cant remove them since

@@ -8,7 +8,6 @@ public class Indexer{
     
     private static IndexerDAO indexerManager = new IndexerDAO();
     
-    private static Preprocessor preprocessorObj = new Preprocessor();
     private static Parser parserObj = new Parser();
     private static double spamPercentage = 0.4; // if certain word exceed that percentage report spam
     
@@ -29,12 +28,17 @@ public class Indexer{
     // and pass Category with it to know where does these words exists
     // these are all possible categories : TITLE,H1,H2,H3,H4_H6,TEXT,BOLD
     public static boolean Index(String blockOfText, BlockCategories Category) {
-        if(blockOfText.length() == 0){
+        if(blockOfText == "" || blockOfText == " "){
             return true;
         }
         // getting each word by splitting by space
         String[] WordsArray = blockOfText.split(" ");
         for (String _word: WordsArray){
+            if(_word == " " || _word == ""){
+                // as string may contain wrong spaces even after normalising 
+                // we dont need to index these 
+                continue ;
+            }
             Word currentWord = null ; 
             if(wordHashMap.containsKey(_word)){
                 // check if word existed before
@@ -75,8 +79,10 @@ public class Indexer{
         
         //TODO:: maybe will need to extract url eariler here
         
-        String s1 = preprocessorObj.removeStopwords(HTMLString);
-        parserObj.Parse(s1);
+        
+        parserObj.Parse(HTMLString); // parsing html document into main categories h1, h2, ...
+        parserObj.removeStopwordsForAllCategories(); // remove stop words and lower case for all categories
+
         System.out.println("parserObj.H1 " + parserObj.H1);
         System.out.println("parserObj.H2 " + parserObj.H2);
         System.out.println("parserObj.H3 " + parserObj.H3);

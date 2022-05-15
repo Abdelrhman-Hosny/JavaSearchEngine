@@ -4,6 +4,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
 
+import Preprocessing.Preprocessor;
+
 public class Parser {
     public String Url; // url of page
     public String H1; // contain text in h1 
@@ -14,6 +16,8 @@ public class Parser {
     public String normalText; // paragraphs , text in tables , in items , spans , .. 
     public String Bolded_inside_normalText; // contain bold-strong words
     
+    private static Preprocessor preprocessorObj = new Preprocessor();
+
     public String processTextBlock(String inpuString){
         if(inpuString.length() == 0 || inpuString == " "){
             return "";
@@ -44,6 +48,16 @@ public class Parser {
         
         // getting <b>,<strong> tags found inside paragraphs
         Bolded_inside_normalText = processTextBlock(html.select("p,li,td,th").select("b,strong").text());
+    }
+
+    void removeStopwordsForAllCategories(){
+        H1 = preprocessorObj.removeStopwords(H1);
+        H2 = preprocessorObj.removeStopwords(H2);
+        H3 = preprocessorObj.removeStopwords(H3);
+        remainingHeaders = preprocessorObj.removeStopwords(remainingHeaders);
+        Title = preprocessorObj.removeStopwords(Title);
+        normalText = preprocessorObj.removeStopwords(normalText);
+        Bolded_inside_normalText = preprocessorObj.removeStopwords(Bolded_inside_normalText);
     }
 
 }
