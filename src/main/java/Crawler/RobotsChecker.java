@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static Constants.Constants.*;
 
@@ -20,6 +22,13 @@ public class RobotsChecker {
 
     public HashMap<String, HashMap<RobotPermissionTypes, HashSet<String>>> disallowed = new HashMap<>();
     public HashMap<String, HashMap<RobotPermissionTypes, HashSet<String>>> allowed = new HashMap<>();
+
+    public static boolean matchRegex(String pattern, String text) {
+        Pattern re = Pattern.compile(pattern);
+        Matcher matcher = re.matcher(text);
+        return matcher.matches();
+    }
+
 
     public boolean check(String url) {
         URL urlObject;
@@ -40,31 +49,33 @@ public class RobotsChecker {
         HashMap<RobotPermissionTypes, HashSet<String>> allowMap = allowed.get(urlObject.getHost());
         HashMap<RobotPermissionTypes, HashSet<String>> disallowMap = disallowed.get(urlObject.getHost());
 
+        String urlPath = urlObject.getPath();
         // Allowed : Straight matches
         HashSet<String> allowStraightMatches = allowMap.get(RobotPermissionTypes.STRAIGHT_MATCHES);
         for (String allowStraightMatch : allowStraightMatches) {
-            if (url.contains(allowStraightMatch)) return true;
+            if (urlPath.startsWith(allowStraightMatch)) return true;
         }
 
         // Allowed : Wildcards
         HashSet<String> allowWildcards = allowMap.get(RobotPermissionTypes.WILDCARDS);
         // don't know for now
         for (String allowWildcard : allowWildcards) {
-            continue;
+            if (matchRegex(allowWildcard, urlPath)) return true;
         }
 
 
         // Disallowed : Straight matches
         HashSet<String> disallowStraightMatches = disallowMap.get(RobotPermissionTypes.STRAIGHT_MATCHES);
         for (String disallowStraightMatch : disallowStraightMatches) {
-            if (url.contains(disallowStraightMatch)) return false;
+            if (urlPath.startsWith(disallowStraightMatch)) return false;
         }
 
         // Disallowed : Wildcards
         HashSet<String> disallowWildcards = disallowMap.get(RobotPermissionTypes.WILDCARDS);
         // don't know for now
         for (String disallowWildcard : disallowWildcards) {
-            continue;
+
+            if (matchRegex(disallowWildcard, urlPath)) return true;
         }
 
         return true;
@@ -108,6 +119,25 @@ public class RobotsChecker {
         map.get(host).put(RobotPermissionTypes.STRAIGHT_MATCHES, new HashSet<>());
     }
 
+    public static void addUrlToMap(HashMap<RobotPermissionTypes, HashSet<String>> map, String url, String absUrl) {
+
+
+        if (url.contains("*") || url.contains("$")) {
+            if (url.endsWith("*")) {
+                if (!url.substring(0, url.length() - 1).contains("*") && !url.contains("$")){
+                    map.get(RobotPermissionTypes.STRAIGHT_MATCHES).add(url.substring(0, url.length() - 1));
+                } else {
+                    // transform url to regex
+                    String regex = absUrl.replace(".", "[.]").replace("*", ".+");
+                    map.get(RobotPermissionTypes.WILDCARDS).add(regex);
+
+                }
+            }
+        } else {
+            map.get(RobotPermissionTypes.STRAIGHT_MATCHES).add(absUrl);
+        }
+    }
+
     public void getRobotsTxtContent(String incomingUrl) throws IOException {
 
         // if already checked, return
@@ -142,29 +172,25 @@ public class RobotsChecker {
 
                     while ((line = in.readLine()) != null) {
                         if (line.startsWith("Disallow:")) {
-                            String disallowString = line.split(":")[1].trim();
-                            String disallowedUrl = incomingUrlObject.getProtocol() + "://" + incomingUrlObject.getHost() + disallowString;
-//                            System.out.println("Disallow : " + disallowString);
-
-                            // if it is a straight match, we add it to the straight hash set
-                            if (true) {
-
-                                hostDisallowedMap.get(RobotPermissionTypes.STRAIGHT_MATCHES).add(disallowedUrl);
+                            String[] splitLine = line.split(":");
+                            if (splitLine.length == 1) {
+                                // means Disallow, equivalent to Allow: /
+                                addUrlToMap(hostAllowedMap, "/", incomingUrl);
                             } else {
-                                hostDisallowedMap.get(RobotPermissionTypes.WILDCARDS).add(disallowedUrl);
+                                String disallowString = splitLine[1].trim();
+                                addUrlToMap(hostDisallowedMap, disallowString, incomingUrl);
+
                             }
-                        } else if (line.startsWith("Allow:")) {
-                            String allowString = line.split(":")[1].trim();
-//                            System.out.println("Allow : " + allowString);
-                            String allowedUrl = incomingUrlObject.getProtocol() + "://" + incomingUrlObject.getHost() + allowString;
-//                            System.out.println("Disallow : " + allowString);
 
-                            // if it is a straight match, we add it to the straight hash set
-                            if (true) {
-
-                                hostAllowedMap.get(RobotPermissionTypes.STRAIGHT_MATCHES).add(allowedUrl);
+                       } else if (line.startsWith("Allow:")) {
+                            String[] splitLine = line.split(":");
+                            if (splitLine.length == 1) {
+                                // means Allow: , equivalent to Disallow: /*
+                                addUrlToMap(hostDisallowedMap, "/", incomingUrl);
                             } else {
-                                hostAllowedMap.get(RobotPermissionTypes.WILDCARDS).add(allowedUrl);
+                                String allowString = splitLine[1].trim();
+                                addUrlToMap(hostDisallowedMap, allowString, incomingUrl);
+
                             }
                         } else if (line.startsWith("User")) {
                             // if there are robots for other agents, we ignore them
