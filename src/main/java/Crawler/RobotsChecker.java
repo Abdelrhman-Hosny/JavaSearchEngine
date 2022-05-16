@@ -58,7 +58,7 @@ public class RobotsChecker {
 
         // Allowed : Wildcards
         HashSet<String> allowWildcards = allowMap.get(RobotPermissionTypes.WILDCARDS);
-        // don't know for now
+
         for (String allowWildcard : allowWildcards) {
             if (matchRegex(allowWildcard, urlPath)) return true;
         }
@@ -72,10 +72,10 @@ public class RobotsChecker {
 
         // Disallowed : Wildcards
         HashSet<String> disallowWildcards = disallowMap.get(RobotPermissionTypes.WILDCARDS);
-        // don't know for now
+
         for (String disallowWildcard : disallowWildcards) {
 
-            if (matchRegex(disallowWildcard, urlPath)) return true;
+            if (matchRegex(disallowWildcard, urlPath)) return false;
         }
 
         return true;
