@@ -1,10 +1,15 @@
 package Crawler;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.UUID;
 
 import static Constants.Constants.*;
 
@@ -16,6 +21,9 @@ public class Crawler {
         HashSet<String> visited = new HashSet<>();
         HashSet<String> toVisit = CrawlerUtils.ReadInitialSeed(SEED_PATH);
 
+        HashMap<Long, HashSet<String>> checksumPathMap = new HashMap<>();
+
+
         // while there are still links to visit
         // and the visited links haven't exceeded the limit
         while (!toVisit.isEmpty() && visited.size() < MAX_DOCS) {
@@ -23,9 +31,8 @@ public class Crawler {
             String url = toVisit.iterator().next();
             toVisit.remove(url);
 
-            url = CrawlerUtils.NormalizeUrl(url);
             if (! visited.contains(url) && !url.endsWith("robots.txt")) {
-                crawlURL(url, visited, toVisit, robotsChecker);
+                crawlURL(url, visited, toVisit, robotsChecker, checksumPathMap);
                 visited.add(url);
             }
 
@@ -37,16 +44,52 @@ public class Crawler {
         }
 
     }
-    public static void crawlURL(String url, HashSet<String> visited, HashSet<String> toVisit, RobotsChecker robotsChecker){
+    public static void crawlURL(String url, HashSet<String> visited, HashSet<String> toVisit, RobotsChecker robotsChecker, HashMap<Long, HashSet<String>> checksumPathMap) {
         // reading HTML document from given URL
 
         // Check for Robots.txt
         if (! robotsChecker.check(url)) return;
 
-        // getting all links from document
-        Elements links = CrawlerUtils.GetAllLinks(url);
-        if (links == null) return;
-//        System.out.println("Links: " + links.size());
+        // get HTML Document
+        Document doc = CrawlerUtils.getHTMLDocument(url);
+        if (doc == null) return;
+        // generate checksum
+        long checksum = CrawlerUtils.hashHTML(doc);
+        // check if checksum is already in the map
+        if (checksumPathMap.containsKey(checksum)) {
+            if (compareFiles(checksumPathMap.get(checksum), doc)) {
+                // true means file already exists
+                // ,so we add the url to visited and exit the crawl
+                visited.add(url);
+                return;
+            }
+            // if files are different we download the new file and add it the paths
+
+            String filePath = DOWNLOAD_PATH + UUID.randomUUID() + ".html";
+            if (!CrawlerUtils.saveHTMLDocument(doc, filePath)) {
+                // if file not added successfully, we add the url to visited and exit the crawl
+                visited.add(url);
+                return;
+            }
+            checksumPathMap.get(checksum).add(filePath);
+
+        } else {
+            // add checksum and url to map
+            HashSet<String> paths = new HashSet<>();
+            String filePath = DOWNLOAD_PATH + UUID.randomUUID() + ".html";
+            if (!CrawlerUtils.saveHTMLDocument(doc, filePath)) {
+                // if file not added successfully, we add the url to visited and exit the crawl
+                visited.add(url);
+                return;
+            }
+
+            paths.add(filePath);
+            checksumPathMap.put(checksum, paths);
+
+        }
+
+        // get all links from document
+        Elements links = doc.getElementsByTag("a");
 
         HashSet<String> newLinks = new HashSet<>();
 
@@ -70,6 +113,29 @@ public class Crawler {
 
         // add new links to toVisit
         toVisit.addAll(newLinks);
+    }
+
+    private static boolean compareFiles(HashSet<String> paths, Document doc) {
+        // return true if file already exists
+        // false if it is a new file
+
+        Document doc1 = CrawlerUtils.removeUselessHtmlTags(doc);
+        for (String path : paths) {
+            Document doc2;
+            try {
+                File input = new File(path);
+                doc2 = CrawlerUtils.removeUselessHtmlTags(Jsoup.parse(input, "UTF-8", ""));
+
+            } catch (IOException e) {
+                System.out.println("Error reading file");
+                e.printStackTrace();
+                continue;
+            }
+
+            if (doc1 == doc2) return true;
+
+        }
+        return false;
     }
 
     public static void main(String[] args) throws IOException {
