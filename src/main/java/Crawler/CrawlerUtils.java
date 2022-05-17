@@ -6,7 +6,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.print.Doc;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -71,27 +72,17 @@ public class CrawlerUtils {
         
         lines.replaceAll(url -> NormalizeUrl(url));
 
-        int seedsPerThread = lines.size() / numThreads;
 
         ArrayList<HashSet<String>> seedArray = new ArrayList<>();
-        // all except last
-        for (int i = 0; i < numThreads - 1; i++) {
-            HashSet<String> currentSet = new HashSet<>();
 
-            for (int j = i * seedsPerThread; j < (i + 1) * seedsPerThread; j++) {
-                currentSet.add(lines.get(i));
-            }
+        for (int i = 0; i < numThreads; i++) {
 
-            seedArray.add(currentSet);
+            seedArray.add(new HashSet<>());
         }
 
-        // last thread
-        HashSet<String> lastSet = new HashSet<>();
-        for (int i = (numThreads - 1) * seedsPerThread; i < lines.size(); i++) {
-            lastSet.add(lines.get(i));
+        for (int i = 0; i < lines.size(); i++) {
+            seedArray.get(i % numThreads).add(lines.get(i));
         }
-
-        seedArray.add(lastSet);
 
         return seedArray;
     }
@@ -130,8 +121,7 @@ public class CrawlerUtils {
 
             document = connection.get();
         } catch (IOException e) {
-            System.out.println("Error: " );
-            e.printStackTrace();
+            System.out.println("Error crawling : " + url);
             return null;
         }
 
@@ -173,5 +163,42 @@ public class CrawlerUtils {
 //        System.out.println(document.text().length());
     }
 
-}
+    public static HashSet<String> loadVisited(String visitedFilePath) {
+        HashSet<String> visited = new HashSet<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(visitedFilePath));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                visited.add(line.split(" ")[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return visited;
+    }
+
+    public static ArrayList<HashSet<String>> loadToVisit(String toVisitPath, int numThreads) {
+        ArrayList<HashSet<String>> toVisit = new ArrayList<>();
+        for (int i = 0; i < numThreads; i++) {
+            toVisit.add(new HashSet<>());
+        }
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(toVisitPath));
+            String line;
+            int i = 0;
+            while ((line = reader.readLine()) != null) {
+                toVisit.get(i % numThreads).add(line);
+                i++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return toVisit;
+    }
+
+    }
+
 
