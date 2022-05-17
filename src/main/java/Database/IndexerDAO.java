@@ -32,6 +32,7 @@ public class IndexerDAO extends BaseDAO {
                 cstmt.setInt(9, allWords.get(key).text);
 
                 if(cstmt.execute()){
+                    cstmt.close();
                     return true;
                 }
             }
@@ -49,6 +50,7 @@ public class IndexerDAO extends BaseDAO {
             cstmt = connection.prepareCall("{call DeleteURLEntries(?)}");
             cstmt.setString(1, url);    
             if(cstmt.execute()){
+                cstmt.close();
                 return true;
             }
             
