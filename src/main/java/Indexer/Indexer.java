@@ -1,8 +1,12 @@
 package Indexer;
-import Preprocessing.Preprocessor;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
-
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import Database.IndexerDAO;
+import static Constants.Constants.*;
+
 
 public class Indexer{
     
@@ -34,9 +38,9 @@ public class Indexer{
         // getting each word by splitting by space
         String[] WordsArray = blockOfText.split(" ");
         for (String _word: WordsArray){
-            if(_word == " " || _word == ""){
+            if(_word.length() == 1 || _word == ""){
                 // as string may contain wrong spaces even after normalising 
-                // we dont need to index these 
+                // we dont need to index these and also single letters 
                 continue ;
             }
             Word currentWord = null ; 
@@ -49,8 +53,9 @@ public class Indexer{
             }
             currentWord.Increment(Category);
             if(documentSize >= documentSizeThreshold &&
-            (float)currentWord.count / WordsArray.length > spamPercentage){
+            (float)currentWord.count / documentSize > spamPercentage){
                 // report spam
+                System.out.println("word spamming" + _word + " " + currentWord.count);
                 return false;
             }
             wordHashMap.put(_word, currentWord);
@@ -71,16 +76,24 @@ public class Indexer{
         return indexerManager.delete_rollBack_Url(documentURL); 
     }
     public static void main(String[] args) {
-        String HTMLString = "<!DOCTYPE html>" + "<html>" + "<head>" + "<title>JSoup Example</title>" + "</head>" + 
-        "<body><h1>HelloWorld00</h1>" + "<table><tr><td> <h1>i  we are HelloWorld</h1><h1>HelloWorld2</h1></tr>" + 
-        "</table>" +"1 2 3 4 5 <p> i am computer <b>computer</b> hi man </p>" +"</body>" + 
-        "<p>sadkj <b>sada</b> bndsjk <p>"+
-        "<table><tr><th>eboo</th></tr><tr><td>Emil</td><td>Tobias</td><td>Linus</td></tr></table>" + "</html>";
+
+        // String HTMLString = "<!DOCTYPE html>" + "<html>" + "<head>" + "<title>JSoup Example</title>" + "</head>" + 
+        // "<body><h1>HelloWorld00</h1>" + "<table><tr><td> <h1>i  we are HelloWorld</h1><h1>HelloWorld2</h1></tr>" + 
+        // "</table>" +"1 2 3 4 5 <p> i am computer <b>computer</b> hi man </p>" +"</body>" + 
+        // "<p>sadkj <b>sada</b> bndsjk <p>"+
+        // "<table><tr><th>eboo</th></tr><tr><td>Emil</td><td>Tobias</td><td>Linus</td></tr></table>" + "</html>";
         
         //TODO:: maybe will need to extract url eariler here
+        File input = new File(DOWNLOAD_PATH+"a223a1f9-a016-4d57-ae3b-519552575ff3.html");
+        Document html ;
+        try {
+            html = Jsoup.parse(input, "UTF-8", "");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ;
+        }
         
-        
-        parserObj.Parse(HTMLString); // parsing html document into main categories h1, h2, ...
+        parserObj.Parse(html); // parsing html document into main categories h1, h2, ...
         parserObj.removeStopwordsForAllCategories(); // remove stop words and lower case for all categories
 
         System.out.println("parserObj.H1 " + parserObj.H1);
@@ -108,6 +121,7 @@ public class Indexer{
             // therefore its spam 
             // will return after cleaning database since we wont need to continue and add data
             spamRollback();
+            System.out.println("spaaam !!!");
             return ;
         }        
 
@@ -119,6 +133,7 @@ public class Indexer{
             +" value.bold "  + value.bold
             );
         }
+        System.out.println("wordHashMap.size()" + wordHashMap.size());
         boolean successTransaction = indexerManager.InsertWordIndex(wordHashMap, "google.com");
         
         // just testing deletion
