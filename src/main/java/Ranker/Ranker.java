@@ -113,7 +113,7 @@ public class Ranker {
         }
 
 
-        int currentIndex = 0; //this will be used to loop through our documents
+        
 
 
         //first step is to calculate total number of documents
@@ -126,49 +126,8 @@ public class Ranker {
         System.out.println("Total number of documents is " + countTotalNumberOfDocuments);
 
         //-----------------------------------------------------------------------------------------------------------
-        /*while (mainDocuments[currentIndex] != null) {
-            //here we will loop through our query words, get tf-idf of that word relative to that documment and save the
-            //result in a priority queue based in the score
-            String currentDocument = mainDocuments[currentIndex];
 
-            //we will loop through our search query items
-            float tf_idf = 0;
-            for (int i = 0; i < searchQuery.length; i++) {
-
-                //getting tf of word
-                String queryTf = "SELECT  tf_idf as tf" +
-                        " FROM " + documentWordTable +
-                        " where word = '" + searchQuery[i] + "'" +
-                        " and document_name = '" + currentDocument + "'";
-                System.out.println(queryTf);
-                ResultSet rsWordTF = createQuery(conn,queryTf);
-                float current_tf = 0;
-                while (rsWordTF.next()) {
-                    current_tf = rsWordTF.getFloat("tf");
-                }
-                System.out.println("Current word tf is "+current_tf);
-                //------------------------------------------------------------------------
-                //getting idf of word
-                String getNumberDocumentsForWord = "select count(distinct document_name) as total from " + documentWordTable
-                        + " where word = '" + searchQuery[i] + "'";
-                ResultSet rsWordIDF = createQuery(conn,getNumberDocumentsForWord);
-                int countWordInWeb = 0;
-                while (rsWordIDF.next()) {
-                    countWordInWeb = rsWordIDF.getInt("total");
-                }
-                System.out.println("Current word idf is "+countWordInWeb);
-                //--------------------------------------------------------------------------
-                double idfOfWord = Math.log((double)countTotalNumberOfDocuments / (double) countWordInWeb);
-                tf_idf += (current_tf * idfOfWord);
-                System.out.println("Current TF-idf is" +tf_idf);
-
-            }
-            Entry finalValues = new Entry(currentDocument, (double) tf_idf);
-            rankerResult.add(finalValues);
-
-            currentIndex += 1;
-        }*/
-
+        
         int shareOfThread = mainDocuments.size() / Ranker.numberOfThreads;
         //this means that the number of documents is less than number of threads there for we only need one thread
         Thread []listOfThreads = new Thread[4];
