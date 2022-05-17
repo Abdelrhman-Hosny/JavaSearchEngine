@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -55,12 +56,46 @@ public class CrawlerUtils {
         return checksum.getValue();
 
     }
+    
     public static HashSet<String> ReadInitialSeed(String filePath) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(filePath));
 
         lines.replaceAll(url -> NormalizeUrl(url));
         return new HashSet<>(lines);
     }
+
+
+    public static ArrayList<HashSet<String>> ReadInitialSeed(String filePath, int numThreads) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(filePath));
+
+        
+        lines.replaceAll(url -> NormalizeUrl(url));
+
+        int seedsPerThread = lines.size() / numThreads;
+
+        ArrayList<HashSet<String>> seedArray = new ArrayList<>();
+        // all except last
+        for (int i = 0; i < numThreads - 1; i++) {
+            HashSet<String> currentSet = new HashSet<>();
+
+            for (int j = i * seedsPerThread; j < (i + 1) * seedsPerThread; j++) {
+                currentSet.add(lines.get(i));
+            }
+
+            seedArray.add(currentSet);
+        }
+
+        // last thread
+        HashSet<String> lastSet = new HashSet<>();
+        for (int i = (numThreads - 1) * seedsPerThread; i < lines.size(); i++) {
+            lastSet.add(lines.get(i));
+        }
+
+        seedArray.add(lastSet);
+
+        return seedArray;
+    }
+
 
     public static String NormalizeUrl(String url) {
         // remove spaces and make it lowercase
