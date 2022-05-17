@@ -96,7 +96,7 @@ public class Crawler {
     }
 
     private class CrawlerInstance implements Runnable {
-        HashSet<String> localToVisit, localVisited, globalToVisit, globalVisited;
+        HashSet<String> localToVisit, globalToVisit, globalVisited;
         RobotsChecker robotsChecker;
         HashMap<Long, HashSet<String>> checksumPathMap;
 
@@ -105,7 +105,6 @@ public class Crawler {
                 HashMap<Long, HashSet<String>> checksumPathMap) {
 
             this.localToVisit = localToVisit;
-            this.localVisited = new HashSet<>();
             this.globalToVisit = globalToVisit;
             this.globalVisited = globalVisited;
             this.robotsChecker = robotsChecker;
