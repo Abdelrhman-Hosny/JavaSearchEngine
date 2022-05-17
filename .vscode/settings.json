@@ -1,0 +1,8 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "C:\\Users\\ESC\\Documents\\Downloads\\mssql-jdbc-10.2.0.jre8"
+    ]
+    
+}

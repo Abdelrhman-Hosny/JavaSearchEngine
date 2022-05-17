@@ -31,13 +31,11 @@ public class Parser {
         return StringUtil.normaliseWhitespace(inpuString.replaceAll("[^a-zA-Z0-9]", " ")).trim();
     }
     
-    public void Parse(String preprocessedHtml){
-        if(preprocessedHtml.length() == 0 )
-            return;
+    public void Parse(Document html){
         
-        Document html = Jsoup.parse(preprocessedHtml);
-        Url = html.location();
+        Url = "AhmedEhab.com";//html.location();
         H1 = processTextBlock(html.select("h1").text()); // will select h1 and remove all symbols from it
+        System.out.println("H1" + H1);
         H2 = processTextBlock(html.select("h2").text());
         H3 = processTextBlock(html.select("h3").text());
         remainingHeaders = processTextBlock(html.select("h4,h5,h6").text());
