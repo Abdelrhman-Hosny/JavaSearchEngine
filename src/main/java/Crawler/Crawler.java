@@ -5,7 +5,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,30 +19,55 @@ import static Constants.Constants.*;
 public class Crawler {
 
     HashMap<Long, HashSet<String>> checksumPathMap;
-    HashSet<String> globalVisited, globalToVisit;
+    HashSet<String> globalVisited, globalToVisit, globalVisitedRuined;
     int numThreads;
     String seedPath;
     RobotsChecker robotsChecker;
+    public final String VisitedFilePath = CRAWLER_PROGRESS_PATH + VISITED_SAVE_FILE;
+    public final String toVisitPath = CRAWLER_PROGRESS_PATH + TO_VISIT_SAVE_FILE;
 
-    Crawler(int numThreads, String seedPath) {
-        globalVisited = new HashSet<>();
-        globalToVisit = new HashSet<>();
+    Crawler(int numThreads, String seedPath, boolean loadOldProgress) {
         this.numThreads = numThreads;
         this.seedPath = seedPath;
-        robotsChecker = new RobotsChecker();
+        globalVisitedRuined = new HashSet<>();
+        robotsChecker = new RobotsChecker(loadOldProgress);
 
         checksumPathMap = new HashMap<>();
         // check for state (checkpoints)
 
-        // split seeds into numThreads starting seeds.
         ArrayList<HashSet<String>> seedArray;
-        try {
-            seedArray = CrawlerUtils.ReadInitialSeed(seedPath, numThreads);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Can't read seeds");
-            return;
+        if (loadOldProgress) {
+            globalVisited = CrawlerUtils.loadVisited(VisitedFilePath);
+            seedArray = CrawlerUtils.loadToVisit(toVisitPath, numThreads);
+            globalToVisit = seedArray.get(0);
+            for (int i = 1; i < numThreads; i++) {
+               globalToVisit.addAll(seedArray.get(i));
+            }
+
+        } else {
+            // initialize variables
+
+            globalToVisit = new HashSet<>();
+            globalVisited = new HashSet<>();
+            // delete old progress
+            File file = new File(VisitedFilePath);
+            if (file.exists()) {
+                file.delete();
+            }
+            file = new File(toVisitPath);
+            if (file.exists()) {
+                file.delete();
+            }
+            try {
+                seedArray = CrawlerUtils.ReadInitialSeed(seedPath, numThreads);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Can't read seeds");
+                return;
+            }
+
         }
+        // split seeds into numThreads starting seeds.
 
         // create threads
         Thread[] threadArr = new Thread[numThreads];
@@ -96,9 +123,11 @@ public class Crawler {
     }
 
     private class CrawlerInstance implements Runnable {
-        HashSet<String> localToVisit, globalToVisit, globalVisited;
-        RobotsChecker robotsChecker;
-        HashMap<Long, HashSet<String>> checksumPathMap;
+        HashSet<String> localToVisit;
+        final HashSet<String> globalToVisit;
+        HashSet<String> globalVisited;
+        final RobotsChecker robotsChecker;
+        final HashMap<Long, HashSet<String>> checksumPathMap;
 
         CrawlerInstance(HashSet<String> localToVisit, HashSet<String> globalToVisit,
                 HashSet<String> globalVisited, RobotsChecker robotsChecker,
@@ -126,16 +155,21 @@ public class Crawler {
                     globalToVisit.remove(url);
                 }
 
-                if (!globalVisited.contains(url) && !url.endsWith("robots.txt")) {
-                    crawlURL(url);
-                    globalVisited.add(url);
+                if (!globalVisited.contains(url) && !globalVisitedRuined.contains(url) && !url.endsWith("robots.txt")) {
+                    try {
+
+                        crawlURL(url);
+                    }
+                    catch (Exception e) {
+                        System.out.println("Error crawling url: " + url);
+                    }
                 }
 
             }
 
         }
 
-        public void crawlURL(String url) {
+        public void crawlURL(String url) throws IOException {
             // reading HTML document from given URL
 
             // Check for Robots.txt
@@ -146,48 +180,82 @@ public class Crawler {
 
             // get HTML Document
             Document doc = CrawlerUtils.getHTMLDocument(url);
-            if (doc == null)
+            if (doc == null) {
+                globalVisitedRuined.add(url);
                 return;
+            }
             // generate checksum
             long checksum = CrawlerUtils.hashHTML(doc);
             // check if checksum is already in the map
-            if (checksumPathMap.containsKey(checksum)) {
-                if (compareFiles(checksumPathMap.get(checksum), doc)) {
-                    // true means file already exists
-                    // ,so we add the url to visited and exit the crawl
+            synchronized (checksumPathMap) {
+                if (checksumPathMap.containsKey(checksum)) {
+                    if (compareFiles(checksumPathMap.get(checksum), doc)) {
+                        // true means file already exists
+                        // ,so we add the url to visited and exit the crawl
+                        globalVisitedRuined.add(url);
+                        return;
+                    }
+                    // if files are different we download the new file and add it the paths
+
+                    String filePath = DOWNLOAD_PATH + UUID.randomUUID() + ".html";
+                    if (!CrawlerUtils.saveHTMLDocument(doc, filePath)) {
+                        // if file not added successfully, we add the url to visited and exit the crawl
+                        globalVisitedRuined.add(url);
+                        return;
+                    }
+                    // write to file
+                    FileWriter fw;
+                    try {
+                        fw = new FileWriter(VisitedFilePath, true);
+                        BufferedWriter bw = new BufferedWriter(fw);
+                        bw.write(url + " " + filePath + "\n");
+                        bw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    checksumPathMap.get(checksum).add(filePath);
                     globalVisited.add(url);
-                    return;
-                }
-                // if files are different we download the new file and add it the paths
 
-                String filePath = DOWNLOAD_PATH + UUID.randomUUID() + ".html";
-                if (!CrawlerUtils.saveHTMLDocument(doc, filePath)) {
-                    // if file not added successfully, we add the url to visited and exit the crawl
+                } else {
+                    // add checksum and url to map
+                    HashSet<String> paths = new HashSet<>();
+                    String filePath = DOWNLOAD_PATH + UUID.randomUUID() + ".html";
+                    if (!CrawlerUtils.saveHTMLDocument(doc, filePath)) {
+                        // if file not added successfully, we add the url to visited and exit the crawl
+                        globalVisitedRuined.add(url);
+                        return;
+                    }
+                    FileWriter fw;
+                    try {
+                        fw = new FileWriter(VisitedFilePath, true);
+                        BufferedWriter bw = new BufferedWriter(fw);
+                        bw.write(url + " " + filePath + "\n");
+                        bw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    paths.add(filePath);
+                    checksumPathMap.put(checksum, paths);
+
+
                     globalVisited.add(url);
-                    return;
                 }
-                checksumPathMap.get(checksum).add(filePath);
-
-            } else {
-                // add checksum and url to map
-                HashSet<String> paths = new HashSet<>();
-                String filePath = DOWNLOAD_PATH + UUID.randomUUID() + ".html";
-                if (!CrawlerUtils.saveHTMLDocument(doc, filePath)) {
-                    // if file not added successfully, we add the url to visited and exit the crawl
-                    globalVisited.add(url);
-                    return;
-                }
-
-                paths.add(filePath);
-                checksumPathMap.put(checksum, paths);
-
             }
 
             // get all links from document
             Elements links = doc.getElementsByTag("a");
-
-            HashSet<String> newLinks = new HashSet<>();
-
+            FileWriter fw;
+            BufferedWriter bw;
+            try {
+                fw = new FileWriter(toVisitPath, true);
+                bw = new BufferedWriter(fw);
+            } catch (IOException e) {
+                e.printStackTrace();
+                bw = null;
+            }
             for (Element link : links) {
 
                 String relative_link = link.attr("href").toLowerCase();
@@ -199,28 +267,27 @@ public class Crawler {
                     continue;
 
                 // check if link already visited or forbidden by robots.txt
-                if (!globalVisited.contains(abs_link) && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
+                if (!globalVisitedRuined.contains(abs_link) && !globalVisited.contains(abs_link) && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
                     localToVisit.add(abs_link);
                     globalToVisit.add(abs_link);
+                    if (bw != null) bw.write(abs_link + "\n");
                 }
 
             }
+
+            if (bw != null) bw.close();
 
         }
 
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         long startTime = System.nanoTime();
-        Crawler crawler = new Crawler(4, SEED_PATH);
+        new Crawler(4, SEED_PATH, false);
         long stopTime = System.nanoTime();
         long elapsedTime = stopTime - startTime;
         elapsedTime /= 1_000_000_000;
         System.out.println("Elapsed time: " + elapsedTime);
-        // for (int i = 0; i < 10; i++) {
-        // URL x = new URL("https://www.google.com");
-        // x.openConnection();
-        // System.out.println(x.getHost());
-        // }
+
     }
 }

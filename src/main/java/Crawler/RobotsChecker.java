@@ -1,12 +1,14 @@
 package Crawler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +22,40 @@ public class RobotsChecker {
         STRAIGHT_MATCHES
     }
 
+
     public HashMap<String, HashMap<RobotPermissionTypes, HashSet<String>>> disallowed = new HashMap<>();
     public HashMap<String, HashMap<RobotPermissionTypes, HashSet<String>>> allowed = new HashMap<>();
+
+    public final String RobotsFilePath = CRAWLER_PROGRESS_PATH + ROBOTS_SAVE_FILE;
+    RobotsChecker() {
+
+    }
+
+    RobotsChecker(boolean LoadFromProgress) {
+        Path of = Path.of(RobotsFilePath);
+        if (LoadFromProgress) {
+            List<String> lines = null;
+            try {
+                lines = Files.readAllLines(of);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            assert lines != null;
+            for (String line : lines) {
+                try {
+                    getRobotsTxtContent(line);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            File file = new File(RobotsFilePath);
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+    }
 
     public static boolean matchRegex(String pattern, String text) {
         Pattern re = Pattern.compile(pattern);
@@ -43,7 +77,7 @@ public class RobotsChecker {
             // if site not visited before, check the robots.txt
             if (!allowed.containsKey(urlObject.getHost())) getRobotsTxtContent(url);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error while checking " + url + " for robots.txt");
         }
 
         HashMap<RobotPermissionTypes, HashSet<String>> allowMap = allowed.get(urlObject.getHost());
@@ -88,7 +122,7 @@ public class RobotsChecker {
         try {
             url = new URL(incomingUrl);
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            System.out.println("Error while getting robots.txt for " + incomingUrl);
             return null;
         }
 
@@ -102,11 +136,9 @@ public class RobotsChecker {
         try {
             robotsTxtUrlObject = new URL(robotsTxtUrl);
 
-            System.out.println(robotsTxtUrlObject);
             in = new BufferedReader(new InputStreamReader(robotsTxtUrlObject.openStream()));
 
         } catch (IOException e) {
-            e.printStackTrace();
             return null;
         }
 
@@ -204,6 +236,14 @@ public class RobotsChecker {
 
             }
         }
+        in.close();
+
+        String robotsTxtUrl = incomingUrlObject.getProtocol() + "://" + incomingUrlObject.getHost() + "/robots.txt";
+        // write to file
+        FileWriter fw = new FileWriter(RobotsFilePath, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        bw.write(robotsTxtUrl + "\n");
+        bw.close();
     }
 
 
