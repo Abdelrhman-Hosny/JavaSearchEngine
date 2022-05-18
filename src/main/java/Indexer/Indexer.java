@@ -36,7 +36,7 @@ public class Indexer implements Runnable{
         // getting each word by splitting by space
         String[] WordsArray = blockOfText.split(" ");
         for (String _word: WordsArray){
-            if(_word.length() == 1 || _word == ""){
+            if(_word == "" || _word == " "){
                 // as string may contain wrong spaces even after normalising 
                 // we dont need to index these and also single letters 
                 continue ;
