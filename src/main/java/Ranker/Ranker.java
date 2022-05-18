@@ -161,7 +161,7 @@ public class Ranker {
     
 
 
-    public Object[] process(String search) throws SQLException, InterruptedException, IOException {
+    public Object[] process(String search,boolean isPhrase) throws SQLException, InterruptedException, IOException {
         //assuming that the connection to the sql server is made
         //and we have a string of words after they are query processed
         //we are going to calculate the tf-idf of the word we are getting through the following queries
@@ -196,7 +196,12 @@ public class Ranker {
         System.out.println(finalWords);
         //we are going to assume for two words at least to appear
 
-        ResultSet rsDocumentsWhereAllWordsAppears = rankerDB.GetDocumentsWhereAllWordsAppears(finalWords);
+        ResultSet rsDocumentsWhereAllWordsAppears = null ;
+        if(!isPhrase){
+            rsDocumentsWhereAllWordsAppears = rankerDB.GetDocumentsWhereAllWordsAppears(finalWords);
+        }else{
+            rsDocumentsWhereAllWordsAppears = rankerDB.GetPhraseLevelDocumentsNames(search);
+        }
 //        String[] mainDocuments = new String[100];
         ArrayList<String> mainDocuments = new ArrayList<String>();
 

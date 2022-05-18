@@ -90,25 +90,27 @@ public class Backend {
             // calling data base on array list
             ArrayList<ResponseObject> res = new ArrayList<>();
             try {
-                Object[] entryArray = rankerObj.process(queryGot);
+                Object[] entryArray = null ;
                 
                 ResultSet rs = null;
                 
                 if(isPhraseLevel == false){
-                    String finalWords = "(";
-                    for (int i = 0; i < entryArray.length; i++) {
-                        finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
-                    }
-                    int index = finalWords.lastIndexOf(',');
-                    finalWords = finalWords.substring(0,index);
-                    finalWords += ")";
-                    rs =documentManager.GetallDocumentswithUrls(finalWords);
+                    entryArray = rankerObj.process(queryGot,false);
+
                 }
                 else{
                     // getting phrase level where just got documents that contain whole words written
-                    rs = documentManager.GetPhraseLevelDocumentswithUrls(phrased);
+                    entryArray = rankerObj.process(phrased,true);
+                    //filtering
                 }
-
+                String finalWords = "(";
+                for (int i = 0; i < entryArray.length; i++) {
+                    finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
+                }
+                int index = finalWords.lastIndexOf(',');
+                finalWords = finalWords.substring(0,index);
+                finalWords += ")";
+                rs =documentManager.GetallDocumentswithUrls(finalWords);
                 while(rs.next()){
                     res.add(new ResponseObject(rs.getString("document_name"), rs.getString("title"), rs.getString("snippet")));
                 }
