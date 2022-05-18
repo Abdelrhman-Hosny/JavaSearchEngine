@@ -6,11 +6,17 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import com.sun.net.httpserver.HttpServer;
+
+import Database.DocumentDAO;
 import Database.QueryDAO;
 import Database.ResponseObject;
+import Ranker.Ranker;
+import Ranker.Ranker.Entry;
 
 import com.google.gson.Gson;
 import com.sun.net.httpserver.Headers;
@@ -21,6 +27,8 @@ public class Backend {
 
     
     static QueryDAO queryManager = new QueryDAO();
+    static DocumentDAO documentManager = new DocumentDAO();
+    static Ranker rankerObj = new Ranker();
     public static void main(String[] args) throws IOException {
         int port = 8080;
         
@@ -71,6 +79,24 @@ public class Backend {
             Gson gson = new Gson();
             // calling data base on array list
             ArrayList<ResponseObject> res = new ArrayList<>();
+            try {
+                Object[] entryArray = rankerObj.process(queryGot);
+                String finalWords = "(";
+                for (int i = 0; i < entryArray.length; i++) {
+                    finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
+                }
+                int index = finalWords.lastIndexOf(',');
+                finalWords = finalWords.substring(0,index);
+                finalWords += ")";
+                ResultSet rs =documentManager.GetallDocumentswithUrls(finalWords);
+                while(rs.next()){
+                    res.add(new ResponseObject(rs.getString("document_name"), rs.getString("title"), rs.getString("snippet")));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             String json = gson.toJson(res);
             arg0.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
             // will contain the search results after ranker
