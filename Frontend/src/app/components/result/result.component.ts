@@ -1,9 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {GoogleResponse} from "../../GoogleResponse.model";
-import {Subscription} from "rxjs";
 import {SearchService} from "../../search.service";
-import {FormControl, NgForm} from "@angular/forms";
 import {Router} from "@angular/router";
+import { ResponseObject } from 'src/app/ResponesObject';
 
 @Component({
   selector: 'app-result',
@@ -12,43 +10,54 @@ import {Router} from "@angular/router";
 })
 export class ResultComponent implements OnInit,OnDestroy {
   @Input() value :string | any;
-  subs:Subscription[]=[];
+  
   term: any;
   totalLength:any;
   page:number=1;
-  results: any ;
+  results: Array<ResponseObject> = [];
+  myR: ResponseObject = new ResponseObject;
 
-
-  constructor(private searchService:SearchService,private router:Router) { }
+  constructor(private searchService:SearchService,private router:Router) { 
+   }
 
   ngOnInit(): void {
     const {term} = history.state;
     this.term = term;
-    if (term) {
-      this.subs.push
-      (this.searchService.getSearchData(term).subscribe((data: GoogleResponse) => {
-          this.results = data;
-          this.totalLength = this.results?.items?.length;
-      })
-      )
+    for(let i = 0 ; i < 20 ; i++ ){
+      this.results.push(this.myR);
+      this.totalLength = this.results.length;
     }
-
+    // TODO :: PUT HTTP HERE ALSO
+    // if (term) {
+    //   this.subs.push
+    //   (this.searchService.getSearchData(term).subscribe((data: String) => {
+    //       this.results = data;
+    //       // this.totalLength = this.results?.items?.length;
+    //   })
+    //   )
+    // }
   }
+
   ngOnDestroy():void {
-  this.subs.map(s=>s.unsubscribe());
-}
+    
+  }
+  
   search():void
   {
-    this.term=this.value
-      this.subs.push
-      (this.searchService.getSearchData(this.value).subscribe((data: GoogleResponse) => {
-          this.results = data;
-          this.totalLength = this.results?.items?.length
+      this.term=this.value
+      
+      this.searchService.getSearchData(this.value).subscribe((data: String) => {
+          
+          //TODO:: put data here after http request
+          // this.results = data;
+          console.log(this.results);
+          // this.totalLength = this.results?.items?.length
           this.page =1;
         })
-      )
+      
     }
-  acceptdata(data:any)
+  
+    acceptdata(data:any)
   {
     this.value=data;
   }

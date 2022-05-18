@@ -60,12 +60,12 @@ alt="logo" style="cursor:pointer">
   </header>
   <main class="search_results">
   <div class="search_results_header">
-    <p>About {{results?.searchInformation?.formattedTotalResults}} results </p>
+    <p>About {{totalLength}} results </p>
     </div>
 
     <div class="container mt-5 mb-5">
       <div class="row">
-        <div *ngFor="let r of results?.items | paginate :{itemsPerPage : 3,currentPage : page,totalItems : totalLength}"  >
+        <div *ngFor="let r of results | paginate :{itemsPerPage : 3,currentPage : page,totalItems : totalLength}"  >
 
           <ng-container *ngIf="r">
             <div class="search_results_body">
