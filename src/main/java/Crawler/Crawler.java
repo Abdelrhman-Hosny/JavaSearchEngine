@@ -283,12 +283,12 @@ public class Crawler {
                 if (!abs_link.startsWith("http"))
                     continue;
 
+                if (pageDegreeBufferedWriter != null) pageDegreeBufferedWriter.write(abs_link + "\t");
                 // check if link already visited or forbidden by robots.txt
                 if (!globalVisitedRuined.contains(abs_link) && !globalVisited.contains(abs_link) && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
                     localToVisit.add(abs_link);
                     globalToVisit.add(abs_link);
                     if (toVisitBufferedWriter != null) toVisitBufferedWriter.write(abs_link + "\n");
-                    if (pageDegreeBufferedWriter != null) pageDegreeBufferedWriter.write(abs_link + "\t");
                 }
 
 
