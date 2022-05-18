@@ -23,9 +23,9 @@ export class SearchComponent implements OnInit {
   @Input() currentTermValue: any;
   @Input() rightIcon;
   @Output()valuechosen:EventEmitter<string>=new EventEmitter<string>();
-  options = ["sam", "varun", "jasmine","mohamed","angular","mosalahh","mostafa"];
+  options = ["ahmed","ahmod"];
 
-  constructor() {
+  constructor(private searchService:SearchService) {
     this.rightIcon = 'true';
     this.valuechosen.emit('');
   }
@@ -35,21 +35,25 @@ export class SearchComponent implements OnInit {
 
 
   ngOnInit(): void {
-
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value))
-
     )
-
-
-
   }
 
 
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
     this.valuechosen.emit(value);
+    if(value == ""){
+      return [];
+    }
+
+    this.searchService.getAutoCompleteData(value).subscribe(data =>{
+      // assigning options to retrieven auto completes
+      this.options = data.list;
+    })
+
     return this.options.filter(option => option.toLowerCase().includes(filterValue));
 
 
