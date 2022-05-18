@@ -38,8 +38,10 @@ public class documentRank implements Runnable {
             String currentDocument = shareOfDocs.get(k);
 
             for (int i = 0; i < searchQuery.length; i++) {
-                
-                ResultSet rsWordTF = rankerDB.SearchWordIndex(searchQuery[i], currentDocument);
+                ResultSet rsWordTF = null;
+                synchronized(rankerDB){
+                    rsWordTF = rankerDB.SearchWordIndex(searchQuery[i], currentDocument);
+                }
                 int h1 = 0;
                 int h2 = 0;
                 int h3 = 0;
@@ -71,14 +73,21 @@ public class documentRank implements Runnable {
                 current_tf = current_tf*finalWeights;
                 //------------------------------------------------------------------------
                 //getting idf of word
-                int countWordInWeb = rankerDB.getNumberOfDocumentsForWord(searchQuery[i]);
+                int countWordInWeb = 0 ;
+                synchronized(rankerDB){
+                    countWordInWeb = rankerDB.getNumberOfDocumentsForWord(searchQuery[i]);
+                }
                 //System.out.println("Current word idf is " + countWordInWeb);
                 //--------------------------------------------------------------------------
                 double idfOfWord = Math.log((double) countTotalNumberOfDocuments / (double) countWordInWeb);
                 tf_idf += (current_tf * idfOfWord);
             }
+            double final_rank = 0 ;
+            synchronized(rankerDB){
+                final_rank = rankerDB.getDocumentRank(currentDocument) * tf_idf;
+            }
             synchronized (rankerResult) {
-                rankerResult.add(new Ranker.Entry(currentDocument, tf_idf)); //adding to priority queue
+                rankerResult.add(new Ranker.Entry(currentDocument, final_rank)); //adding to priority queue
             }
 
         }
