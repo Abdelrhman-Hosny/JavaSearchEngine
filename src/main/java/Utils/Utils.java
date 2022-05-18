@@ -13,7 +13,6 @@ import static Constants.Constants.*;
 
 public class Utils {
 
-
     public HashMap<String, HashSet<String>> cleanPageDegreeFile(String filePath) throws IOException {
 
         HashMap<String, HashSet<String>> pageDegreeMap = new HashMap<>();
@@ -23,7 +22,8 @@ public class Utils {
         lines.replaceAll(line -> line.split("\t")[0]);
 
         HashSet<String> visited = new HashSet<>(lines);
-        //HashSet<String> visited = new HashSet<String>(List.of(new String[]{"1", "2", "3", "4", "5"}));
+        // HashSet<String> visited = new HashSet<String>(List.of(new String[]{"1", "2",
+        // "3", "4", "5"}));
 
         BufferedReader br = Files.newBufferedReader(Paths.get(filePath));
 
@@ -32,32 +32,33 @@ public class Utils {
         while ((line = br.readLine()) != null) {
 
             String[] split = line.split("\t");
-//            System.out.println(split[0]);
+            // System.out.println(split[0]);
 
-            if (split.length <= 1 && !visited.contains(split[0])) continue;
+            if (split.length <= 1 && !visited.contains(split[0]))
+                continue;
 
             String page = split[0];
 
             HashSet<String> outLinks = new HashSet<>();
             for (int i = 1; i < split.length; i++) {
-               if (!visited.contains(split[i])) continue;
-//                if(page.equals(split[i]))
-//                    continue;
-                    outLinks.add(split[i]);
+                if (!visited.contains(split[i]))
+                    continue;
+                // if(page.equals(split[i]))
+                // continue;
+                outLinks.add(split[i]);
 
             }
-            if(outLinks.size() == 0) {
-                System.out.println("adding sink url"+page);
+            if (outLinks.size() == 0) {
+                System.out.println("adding sink url" + page);
 
                 for (String x : visited) {
-//                    if(x.equals(page))
-//                        continue;
+                    // if(x.equals(page))
+                    // continue;
                     outLinks.add(x);
 
                 }
             }
-                pageDegreeMap.put(page, outLinks);
-
+            pageDegreeMap.put(page, outLinks);
 
         }
 
@@ -71,10 +72,10 @@ public class Utils {
             HashSet<String> inLinks = new HashSet<>();
 
             for (String loopingPage : pageDegreeMap.keySet()) {
-//                if (loopingPage.equals(currentPage)) continue;
-                    if (pageDegreeMap.get(loopingPage).contains(currentPage)) {
-                        inLinks.add(loopingPage);
-                    }
+                // if (loopingPage.equals(currentPage)) continue;
+                if (pageDegreeMap.get(loopingPage).contains(currentPage)) {
+                    inLinks.add(loopingPage);
+                }
             }
 
             inPageMap.put(currentPage, inLinks);
@@ -84,24 +85,6 @@ public class Utils {
     }
 
     public static void main(String[] args) {
-        try {
-            Utils utils = new Utils();
-            HashMap<String, HashSet<String>> x = utils.cleanPageDegreeFile(CRAWLER_PROGRESS_PATH + PAGE_DEGREE_SAVE_FILE);
-            //System.out.print(x);
-            //System.out.println(x);
-            HashMap<String,Double> pageRank = calculatePageRank(x,utils.getInPageMap(x));
-            double sum = 0;
-            for (String lambda: pageRank.keySet())
-            {
-                sum+= pageRank.get(lambda);
-            }
-            System.out.println(sum);
-            System.out.print(pageRank);
-            //System.out.println("Count in\n\n");
-            //System.out.println(utils.getInPageMap(x));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("hello");
     }
 }
-
