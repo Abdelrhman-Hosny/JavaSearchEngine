@@ -83,6 +83,28 @@ public class RankerDAO extends BaseDAO {
             return (ResultSet) e;
         }
     }
+    public ResultSet GetPhraseLevelDocumentsNames(String query){
+            
+        String [] splitted = query.split(" ");
+        String queryGetDocumentsWhereAllWordsAppears = "SELECT document_name FROM IndexTable where word = '" + splitted[0]+"'";
+        for (int i = 1; i < splitted.length; i++) {
+            queryGetDocumentsWhereAllWordsAppears += " Intersect SELECT  document_name FROM IndexTable where word = '" + splitted[i]+"'";
+        }
+
+        
+        Statement stmt = null;
+        try {
+            stmt = connection.createStatement();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            return stmt.executeQuery(queryGetDocumentsWhereAllWordsAppears);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return (ResultSet) e;
+        }
+    }
 
     public double getDocumentRank(String doc)
     {
