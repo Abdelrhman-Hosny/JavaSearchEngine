@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {SearchService} from "../../search.service";
 import {Router} from "@angular/router";
-import { ResponseObject } from 'src/app/ResponesObject';
+import { ResponseObjects,ResponseObject } from 'src/app/ResponesObjects';
 
 @Component({
   selector: 'app-result',
@@ -14,8 +14,8 @@ export class ResultComponent implements OnInit,OnDestroy {
   term: any;
   totalLength:any;
   page:number=1;
-  results: Array<ResponseObject> = [];
-  myR: ResponseObject = new ResponseObject;
+  results: ResponseObject[] = [];
+  
 
   constructor(private searchService:SearchService,private router:Router) { 
    }
@@ -23,10 +23,7 @@ export class ResultComponent implements OnInit,OnDestroy {
   ngOnInit(): void {
     const {term} = history.state;
     this.term = term;
-    for(let i = 0 ; i < 20 ; i++ ){
-      this.results.push(this.myR);
-      this.totalLength = this.results.length;
-    }
+    
     // TODO :: PUT HTTP HERE ALSO
     // if (term) {
     //   this.subs.push
@@ -46,12 +43,10 @@ export class ResultComponent implements OnInit,OnDestroy {
   {
       this.term=this.value
       
-      this.searchService.getSearchData(this.value).subscribe((data: String) => {
-          
-          //TODO:: put data here after http request
-          // this.results = data;
-          console.log(this.results);
-          // this.totalLength = this.results?.items?.length
+      this.searchService.getSearchData(this.value).subscribe((data: ResponseObjects) => {
+          // assigning results to array of ResponseObject got from backend
+          this.results = data.list;          
+          this.totalLength = this.results.length
           this.page =1;
         })
       
