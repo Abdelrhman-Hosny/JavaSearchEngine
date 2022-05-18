@@ -61,10 +61,57 @@ public class IndexerDAO extends BaseDAO {
         }
         return false;
     }
+
+    public boolean InsertDocument(String url, String title, String snippet) {
+        try {
+
+            CallableStatement cstmt;
+            cstmt = connection.prepareCall("{call Insert_Document(?,?,?)}");
+            cstmt.setString(1, url);
+            cstmt.setString(2, title);
+            cstmt.setString(3, snippet);
+
+            
+            if(cstmt.execute()){
+                cstmt.close();
+                return true;
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public ResponseObject Retrieve_Document(String url) {
+        CallableStatement cstmt;
+        try {
+            
+
+            cstmt = connection.prepareCall("{call Retrieve_Document(?)}");
+            cstmt.setString(1, url); 
+            
+            ResultSet rs =  cstmt.executeQuery(); // return resultSet
+            String title = "" , snippet ="";
+            // list of queries to be returned
+            while(rs.next()){
+                // added quotations to make json
+                title = rs.getString("title");
+                snippet = rs.getString("snippet");
+            }
+            // cleaning up
+            rs.close();
+            cstmt.close();
+            return new ResponseObject(url,title,snippet);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     public static void main(String[] args) {
         IndexerDAO in = new IndexerDAO();
-        HashMap<String,Word> h = new HashMap<>();
-        h.put("ahmed", new Word("inWord", "inDocument"));
-        in.delete_rollBack_Url("www.url.com");
+        ResponseObject rs = in.Retrieve_Document("url");
+
     }
 }

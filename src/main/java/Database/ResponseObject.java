@@ -7,7 +7,7 @@ public class ResponseObject {
 
     public ResponseObject(String informattedUrl,String intitle,String insnippet){
         formattedUrl = informattedUrl;
-        title =  informattedUrl;
+        title =  intitle;
         snippet = insnippet;
     }
 
