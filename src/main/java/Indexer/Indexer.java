@@ -127,7 +127,10 @@ public class Indexer implements Runnable{
 
         
         synchronized(indexerManager){
+            // inserting the words in that document
             indexerManager.InsertWordIndex(wordHashMap, documentURL, documentSize);
+            // inserting the document info to be used while retrieving
+            indexerManager.InsertDocument(documentURL, parserObj.Title, html.select("body").text().substring(0, Math.min(150,html.select("body").text().length())));
         }
            
     }
