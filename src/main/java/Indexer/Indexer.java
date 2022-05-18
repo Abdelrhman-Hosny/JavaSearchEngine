@@ -126,7 +126,6 @@ public class Indexer implements Runnable{
 
         
         synchronized(indexerManager){
-            System.out.println("wordHashMap.size()" + wordHashMap.size());
             indexerManager.InsertWordIndex(wordHashMap, HTMLfile.getName(), documentSize);
         }
            

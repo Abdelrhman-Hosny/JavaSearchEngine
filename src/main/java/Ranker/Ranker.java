@@ -3,16 +3,14 @@ import java.sql.*;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.*;
-
 import Database.RankerDAO;
-import Utils.Utils;
-import static Constants.Constants.*;
+
 
 public class Ranker {
     //here we will define some general variables that we will change locally
 
     public static RankerDAO rankerDB = new RankerDAO();
-    public static int numberOfThreads = 4;
+    public static int numberOfThreads = 2;
 
     //this will be used in the priority queue
     public static class Entry {
@@ -33,7 +31,7 @@ public class Ranker {
             this.value = value;
         }
     }
-    public static HashMap<String,Double> calculatePageRank(HashMap<String, HashSet<String>> outgoing,HashMap<String, HashSet<String>> ingoing)
+    public HashMap<String,Double> calculatePageRank(HashMap<String, HashSet<String>> outgoing,HashMap<String, HashSet<String>> ingoing)
     {
         //the algorithm takes two hashmaps, one that takes each url for ex(A) and states all outgoing urls from that url(A)
 
@@ -46,8 +44,7 @@ public class Ranker {
         HashMap<String,Double> pageRankPrev = new HashMap<String,Double>();
         HashMap<String,Double> pageRankCurrent = new HashMap<String,Double>();
         double initialPageRank = 1/(double)outgoing.size();
-        //System.out.printf("%f",initialPageRank);
-        System.out.println(initialPageRank);
+        
 
 
         //save all urls in an array to be used 
@@ -154,11 +151,8 @@ public class Ranker {
             createInsertQuery(conn, queryAddtoDB);
         }
     }
-    public static void uploadPageRank() throws IOException
+    public void uploadPageRank(HashMap<String,Double> pageRank) throws IOException
     {
-        Utils ut = new Utils();
-        HashMap<String, HashSet<String>> x = ut.cleanPageDegreeFile(CRAWLER_PROGRESS_PATH + PAGE_DEGREE_SAVE_FILE);
-        HashMap<String,Double> pageRank = calculatePageRank(x,ut.getInPageMap(x));
         // calling ranker on db
         rankerDB.addPageRank(pageRank);
 
@@ -171,7 +165,7 @@ public class Ranker {
         //assuming that the connection to the sql server is made
         //and we have a string of words after they are query processed
         //we are going to calculate the tf-idf of the word we are getting through the following queries
-        String search = "football keka";
+        String search = "algorithms computer";
         String[] searchQuery = search.split(" ");
         //for each word we will compute term frequency
         
@@ -187,8 +181,9 @@ public class Ranker {
                     return 0;
             }
         });
+
         
-        uploadPageRank();
+        
 
         //first we get all documents where all these words appears
         String finalWords = "(";
@@ -218,7 +213,7 @@ public class Ranker {
         
         int shareOfThread = mainDocuments.size() / Ranker.numberOfThreads;
         //this means that the number of documents is less than number of threads there for we only need one thread
-        Thread []listOfThreads = new Thread[4];
+        Thread []listOfThreads = new Thread[numberOfThreads];
         if(shareOfThread == 0)
         {
             documentRank currentShareForThread = new documentRank(mainDocuments,searchQuery,rankerResult,countTotalNumberOfDocuments);
@@ -265,10 +260,10 @@ public class Ranker {
         /*we are going to create number of threads equivalent to the number of words in our query where each query
           will get number of documents of this word and compute the TF of the word
          */
-        Iterator v = rankerResult.iterator();
-        System.out.println("The iterator values are: ");
-        Entry test = rankerResult.peek();
-        System.out.println(test.getValue());
 
+        while(rankerResult.size()!=0){
+            System.out.println(rankerResult.peek().getKey()+" "+rankerResult.peek().getValue());
+            rankerResult.remove();
+        }
     }
 }
