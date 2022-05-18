@@ -2,3 +2,5 @@
 *.html
 *.class
 target/
+*.txt
+!src/main/resources/InitialSeed.txt
