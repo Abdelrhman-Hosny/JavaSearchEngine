@@ -13,7 +13,7 @@ import Utils.Utils;
 
 public class PhraseLevel {
 
-    public ArrayList<Integer> getPhraseLevel(ArrayList<Entry> urlArrayEntry, String sentence) throws IOException {
+    public ArrayList<Entry> getPhraseLevel(ArrayList<Entry> urlArrayEntry, String sentence) throws IOException {
         
         ArrayList<String> urlArray = new ArrayList<>();
         for(int i=0;i<urlArrayEntry.size();i++)
@@ -36,25 +36,13 @@ public class PhraseLevel {
                 takenIndices.add(i);
             }
         }
-
-        return takenIndices;
-    }
-
-    public void getSentence() throws IOException{
-        // get all urls for documents
-
-        ArrayList<String> documents = new ArrayList<>();
-        String sentence = "";
-        
-        // run get phrase level
-        ArrayList<Integer> takenIndices = getPhraseLevel(documents, sentence);
-
-        ArrayList<String> takenDocuments = new ArrayList<>();
-        for (int i = 0; i < takenIndices.size(); i++) {
-            takenDocuments.add(documents.get(takenIndices.get(i)));
+        ArrayList<Entry> newResults = new ArrayList<>();
+        for(int i=0;i<takenIndices.size();i++)
+        {
+            newResults.add(new Entry(urlArrayEntry.get(i).getKey(), urlArrayEntry.get(i).getValue()));
         }
 
-
+        return newResults;
     }
     
 }
