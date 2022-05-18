@@ -2,6 +2,7 @@ package Utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -25,7 +26,7 @@ public class Utils {
         // HashSet<String> visited = new HashSet<String>(List.of(new String[]{"1", "2",
         // "3", "4", "5"}));
 
-        BufferedReader br = Files.newBufferedReader(Paths.get(filePath));
+        BufferedReader br = Files.newBufferedReader(Paths.get(filePath),StandardCharsets.ISO_8859_1);
 
         String line;
 
