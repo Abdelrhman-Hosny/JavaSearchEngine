@@ -18,6 +18,7 @@ import static Constants.Constants.*;
 
 public class Crawler {
 
+    HashMap<String, Object> locksMap = new HashMap<>();
     HashMap<Long, HashSet<String>> checksumPathMap;
     HashSet<String> globalVisited, globalToVisit, globalVisitedRuined;
     int numThreads;
@@ -72,6 +73,10 @@ public class Crawler {
             }
 
         }
+        // initialize locksMap
+        locksMap.put("visitedFile", new Object());
+        locksMap.put("toVisitFile", new Object());
+        locksMap.put("pageDegreeFile", new Object());
         // split seeds into numThreads starting seeds.
 
         // create threads
@@ -83,7 +88,8 @@ public class Crawler {
 
             HashSet<String> localToVisit = seedArray.get(i);
             threadArr[i] = new Thread(
-                    new CrawlerInstance(localToVisit, globalToVisit, globalVisited, robotsChecker, checksumPathMap));
+                    new CrawlerInstance(localToVisit, globalToVisit, globalVisited, robotsChecker, checksumPathMap,
+                            locksMap));
 
             threadArr[i].start();
         }
@@ -134,16 +140,18 @@ public class Crawler {
         HashSet<String> globalVisited;
         final RobotsChecker robotsChecker;
         final HashMap<Long, HashSet<String>> checksumPathMap;
+        final HashMap<String, Object> locksMap;
 
         CrawlerInstance(HashSet<String> localToVisit, HashSet<String> globalToVisit,
                 HashSet<String> globalVisited, RobotsChecker robotsChecker,
-                HashMap<Long, HashSet<String>> checksumPathMap) {
+                HashMap<Long, HashSet<String>> checksumPathMap, HashMap<String, Object> locksMap) {
 
             this.localToVisit = localToVisit;
             this.globalToVisit = globalToVisit;
             this.globalVisited = globalVisited;
             this.robotsChecker = robotsChecker;
             this.checksumPathMap = checksumPathMap;
+            this.locksMap = locksMap;
         }
 
         @Override
@@ -156,12 +164,22 @@ public class Crawler {
             while (!localToVisit.isEmpty() && globalVisited.size() < MAX_DOCS) {
 
                 String url = localToVisit.iterator().next();
-                synchronized (globalToVisit) {
+                synchronized (this) {
                     localToVisit.remove(url);
                     globalToVisit.remove(url);
                 }
 
-                if (!globalVisited.contains(url) && !globalVisitedRuined.contains(url) && !url.endsWith("robots.txt")) {
+                boolean ruined;
+                synchronized (this) {
+                    ruined = globalVisitedRuined.contains(url);
+                }
+
+                boolean visited;
+                synchronized (this) {
+                    visited = globalVisited.contains(url);
+                }
+
+                if (!visited && !ruined && !url.endsWith("robots.txt")) {
                     try {
 
                         crawlURL(url);
@@ -178,21 +196,23 @@ public class Crawler {
             // reading HTML document from given URL
 
             // Check for Robots.txt
-            synchronized (robotsChecker) {
+            synchronized (this) {
                 if (!robotsChecker.check(url))
                     return;
             }
 
             // get HTML Document
             Document doc = CrawlerUtils.getHTMLDocument(url);
-            if (doc == null) {
-                globalVisitedRuined.add(url);
-                return;
+            synchronized (this) {
+                if (doc == null) {
+                    globalVisitedRuined.add(url);
+                    return;
+                }
             }
             // generate checksum
             long checksum = CrawlerUtils.hashHTML(doc);
             // check if checksum is already in the map
-            synchronized (checksumPathMap) {
+            synchronized (this) {
                 if (checksumPathMap.containsKey(checksum)) {
                     if (compareFiles(checksumPathMap.get(checksum), doc)) {
                         // true means file already exists
@@ -215,6 +235,7 @@ public class Crawler {
                         BufferedWriter bw = new BufferedWriter(fw);
                         bw.write(url + "\t" + filePath + "\n");
                         bw.close();
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -238,6 +259,7 @@ public class Crawler {
                         BufferedWriter bw = new BufferedWriter(fw);
                         bw.write(url + "\t" + filePath + "\n");
                         bw.close();
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -270,25 +292,27 @@ public class Crawler {
                 pageDegreeBufferedWriter = null;
             }
 
-            synchronized (globalToVisit) {
+            synchronized (this) {
                 if (pageDegreeBufferedWriter != null)
                     pageDegreeBufferedWriter.write(url + "\t");
             }
 
-            for (Element link : links) {
+            synchronized (this) {
+                for (Element link : links) {
 
-                String relative_link = link.attr("href").toLowerCase();
-                if (relative_link.startsWith("#") || relative_link.isEmpty())
-                    continue;
+                    String relative_link = link.attr("href").toLowerCase();
+                    if (relative_link.startsWith("#") || relative_link.isEmpty())
+                        continue;
 
-                String abs_link = CrawlerUtils.NormalizeUrl(link.attr("abs:href").toLowerCase());
-                if (!abs_link.startsWith("http"))
-                    continue;
+                    String abs_link = CrawlerUtils.NormalizeUrl(link.attr("abs:href").toLowerCase());
+                    if (!abs_link.startsWith("http"))
+                        continue;
 
-                synchronized (globalToVisit) {
                     if (pageDegreeBufferedWriter != null)
                         pageDegreeBufferedWriter.write(abs_link + "\t");
 
+                    if (globalToVisit.size() > (MAX_DOCS + MAX_DOCS_PADDING))
+                        break;
                     // check if link already visited or forbidden by robots.txt
                     if (!globalVisitedRuined.contains(abs_link) && !globalVisited.contains(abs_link)
                             && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
@@ -296,20 +320,20 @@ public class Crawler {
                         globalToVisit.add(abs_link);
                         if (toVisitBufferedWriter != null)
                             toVisitBufferedWriter.write(abs_link + "\n");
+
                     }
 
                 }
-            }
+            
             if (pageDegreeBufferedWriter != null) {
-                synchronized (globalToVisit) {
                     pageDegreeBufferedWriter.write("\n");
-                }
+                
                 pageDegreeBufferedWriter.close();
             }
 
             if (toVisitBufferedWriter != null)
                 toVisitBufferedWriter.close();
-
+        }
         }
 
     }
