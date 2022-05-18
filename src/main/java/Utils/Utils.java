@@ -16,13 +16,11 @@ public class Utils {
 
         HashMap<String, HashSet<String>> pageDegreeMap = new HashMap<>();
 
-        HashSet<String> visited = new HashSet<>();
-
         List<String> lines = Files.readAllLines(Paths.get(CRAWLER_PROGRESS_PATH + VISITED_SAVE_FILE));
 
         lines.replaceAll(line -> line.split("\t")[0]);
 
-        visited.addAll(lines);
+        HashSet<String> visited = new HashSet<>(lines);
         BufferedReader br = Files.newBufferedReader(Paths.get(filePath));
 
         String line;
@@ -47,22 +45,23 @@ public class Utils {
         return pageDegreeMap;
     }
 
-    HashMap<String, Integer> getInCount(HashMap<String, HashSet<String>> pageDegreeMap) {
-        HashMap<String, Integer> inCount = new HashMap<>();
+    public HashMap<String, HashSet<String>> getInPageMap(HashMap<String, HashSet<String>> pageDegreeMap) {
+        HashMap<String, HashSet<String>> inPageMap = new HashMap<>();
         for (String currentPage : pageDegreeMap.keySet()) {
+
+            HashSet<String> inLinks = new HashSet<>();
 
             for (String loopingPage : pageDegreeMap.keySet()) {
                 if (loopingPage.equals(currentPage)) continue;
-                if (pageDegreeMap.get(loopingPage).contains(currentPage)) {
-                    if (inCount.containsKey(currentPage)) {
-                        inCount.put(currentPage, inCount.get(currentPage) + 1);
-                    } else {
-                        inCount.put(currentPage, 1);
+                    if (pageDegreeMap.get(loopingPage).contains(currentPage)) {
+                        inLinks.add(loopingPage);
                     }
-                }
             }
+
+            inPageMap.put(currentPage, inLinks);
         }
-        return inCount;
+
+        return inPageMap;
     }
 
     public static void main(String[] args) {
@@ -70,13 +69,13 @@ public class Utils {
             Utils utils = new Utils();
             HashMap<String, HashSet<String>> x = utils.cleanPageDegreeFile(CRAWLER_PROGRESS_PATH + PAGE_DEGREE_SAVE_FILE);
             System.out.println(x.size());
-            for (String s : x.keySet()) {
-                if (x.get(s).size() != 0) {
-                    System.out.println(s + " " + x.get(s));
-                }
-            }
+//            for (String s : x.keySet()) {
+//                if (x.get(s).size() != 0) {
+//                    System.out.println(s + " " + x.get(s));
+//                }
+//            }
             System.out.println("Count in\n\n");
-            System.out.println(utils.getInCount(x));
+            System.out.println(utils.getInPageMap(x));
         } catch (IOException e) {
             e.printStackTrace();
         }
