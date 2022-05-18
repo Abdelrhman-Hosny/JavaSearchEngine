@@ -11,7 +11,7 @@ import { ResponseObjects,ResponseObject } from 'src/app/ResponesObjects';
 export class ResultComponent implements OnInit,OnDestroy {
   @Input() value :string | any;
   
-  term: any;
+  term!: string;
   totalLength:any;
   page:number=1;
   results: ResponseObject[] = [];
@@ -25,14 +25,17 @@ export class ResultComponent implements OnInit,OnDestroy {
     this.term = term;
     
     // TODO :: PUT HTTP HERE ALSO
-    // if (term) {
-    //   this.subs.push
-    //   (this.searchService.getSearchData(term).subscribe((data: String) => {
-    //       this.results = data;
-    //       // this.totalLength = this.results?.items?.length;
-    //   })
-    //   )
-    // }
+    if(this.term ==undefined || this.term.length == 0){
+      return
+    }
+
+    this.searchService.getSearchData(this.term).subscribe((data: ResponseObjects) => {
+      // assigning results to array of ResponseObject got from backend
+      
+      this.results = data.list;          
+      this.totalLength = this.results.length
+      this.page =1;
+    })
   }
 
   ngOnDestroy():void {
@@ -42,7 +45,9 @@ export class ResultComponent implements OnInit,OnDestroy {
   search():void
   {
       this.term=this.value
-      
+      if(this.term ==undefined || this.term.length == 0){
+        return
+      }
       this.searchService.getSearchData(this.value).subscribe((data: ResponseObjects) => {
           // assigning results to array of ResponseObject got from backend
           this.results = data.list;          
