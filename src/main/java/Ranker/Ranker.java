@@ -9,7 +9,7 @@ import Database.RankerDAO;
 public class Ranker {
     //here we will define some general variables that we will change locally
 
-    public static RankerDAO rankerDB = new RankerDAO();
+    public RankerDAO rankerDB = new RankerDAO();
     public static int numberOfThreads = 2;
 
     //this will be used in the priority queue
@@ -161,11 +161,11 @@ public class Ranker {
     
 
 
-    public static void main(String args[]) throws SQLException, InterruptedException, IOException {
+    public void process(String search) throws SQLException, InterruptedException, IOException {
         //assuming that the connection to the sql server is made
         //and we have a string of words after they are query processed
         //we are going to calculate the tf-idf of the word we are getting through the following queries
-        String search = "algorithms computer";
+        // String search = "algorithms computer";
         String[] searchQuery = search.split(" ");
         //for each word we will compute term frequency
         
@@ -262,7 +262,8 @@ public class Ranker {
          */
 
         while(rankerResult.size()!=0){
-            System.out.println(rankerResult.peek().getKey()+" "+rankerResult.peek().getValue());
+
+            String currentPage = rankerResult.peek().getKey(); // url of current page
             rankerResult.remove();
         }
     }
