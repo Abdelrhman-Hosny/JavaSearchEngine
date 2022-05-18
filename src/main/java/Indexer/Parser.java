@@ -1,9 +1,7 @@
 package Indexer;
 
-import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
-
 import Preprocessing.Preprocessor;
 
 public class Parser {
