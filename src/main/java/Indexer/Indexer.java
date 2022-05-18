@@ -19,10 +19,11 @@ public class Indexer implements Runnable{
     private HashMap<String, Word> wordHashMap = new HashMap<String, Word>();
     private File HTMLfile;
     
-    Indexer(IndexerDAO inManager, File inFile){
+    Indexer(IndexerDAO inManager, File inFile, String url){
         //TODO : need to change some eof variables here to constants
         indexerManager = inManager;
         HTMLfile = inFile;
+        documentURL = url;
     }
 
 
@@ -104,7 +105,7 @@ public class Indexer implements Runnable{
         // System.out.println("parserObj.Bolded_inside_normalText " + parserObj.Bolded_inside_normalText);
         // System.out.println("parserObj.Url " + parserObj.Url);
         
-        documentURL = parserObj.Url;
+        
         // getting total number of words in document
         // to check spam if certain word is present > certain percentage in document -> report spam
         // we will consider spam if document > certain size 
@@ -126,7 +127,7 @@ public class Indexer implements Runnable{
 
         
         synchronized(indexerManager){
-            indexerManager.InsertWordIndex(wordHashMap, HTMLfile.getName(), documentSize);
+            indexerManager.InsertWordIndex(wordHashMap, documentURL, documentSize);
         }
            
     }
