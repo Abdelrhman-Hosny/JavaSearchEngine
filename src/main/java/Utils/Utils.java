@@ -13,12 +13,14 @@ import java.util.List;
 import static Constants.Constants.*;
 
 public class Utils {
+    public List<String> lines ;
 
+    public void readAllLines() throws IOException{
+        lines = Files.readAllLines(Paths.get(CRAWLER_PROGRESS_PATH + VISITED_SAVE_FILE));
+    }
     public HashMap<String, HashSet<String>> cleanPageDegreeFile(String filePath) throws IOException {
 
         HashMap<String, HashSet<String>> pageDegreeMap = new HashMap<>();
-
-        List<String> lines = Files.readAllLines(Paths.get(CRAWLER_PROGRESS_PATH + VISITED_SAVE_FILE));
 
         lines.replaceAll(line -> line.split("\t")[0]);
 
