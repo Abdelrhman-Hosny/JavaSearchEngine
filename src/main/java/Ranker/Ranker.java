@@ -161,7 +161,7 @@ public class Ranker {
     
 
 
-    public void process(String search) throws SQLException, InterruptedException, IOException {
+    public Object[] process(String search) throws SQLException, InterruptedException, IOException {
         //assuming that the connection to the sql server is made
         //and we have a string of words after they are query processed
         //we are going to calculate the tf-idf of the word we are getting through the following queries
@@ -259,12 +259,8 @@ public class Ranker {
 
         /*we are going to create number of threads equivalent to the number of words in our query where each query
           will get number of documents of this word and compute the TF of the word
-         */
+        */
 
-        while(rankerResult.size()!=0){
-
-            String currentPage = rankerResult.peek().getKey(); // url of current page
-            rankerResult.remove();
-        }
+        return rankerResult.toArray();
     }
 }
