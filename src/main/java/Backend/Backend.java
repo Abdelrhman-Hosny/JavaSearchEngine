@@ -1,20 +1,33 @@
 package Backend;
 
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import com.sun.net.httpserver.HttpServer;
+import Database.QueryDAO;
+import Database.ResponseObject;
+
+import com.google.gson.Gson;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 public class Backend {
 
     
+    static QueryDAO queryManager = new QueryDAO();
     public static void main(String[] args) throws IOException {
         int port = 8080;
+        
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        
         System.out.println("Server started on port " + port);
-
+        
         server.createContext("/auto-complete", new AutoCompleteHandler());
 
         server.createContext("/search", new SearchHandler());
@@ -27,12 +40,19 @@ public class Backend {
 
         @Override
         public void handle(HttpExchange arg0) throws IOException {
-            String response = "This is autocomplete code";
-            arg0.sendResponseHeaders(200, response.length());
-
-            OutputStream os = arg0.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            
+            // splitting url got to get url param
+            String queryGot = arg0.getRequestURI().toString().split("&query=")[1].replace("%20", " ");
+            // getting autocomplete suggestions from database
+            List<String> autoCompletes = queryManager.Retrieve_query(queryGot);
+            arg0.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            final String responseBody = "{\"list\" : ["+ String.join(", ", autoCompletes) + "]}";
+            final Headers headers = arg0.getResponseHeaders();
+            headers.set("Content-Type", String.format("application/json; charset=%s", StandardCharsets.UTF_8));
+            final byte[] rawResponseBody = responseBody.getBytes(StandardCharsets.UTF_8);
+            arg0.sendResponseHeaders(200, rawResponseBody.length);
+            arg0.getResponseBody().write(rawResponseBody);
+            arg0.close();
         }
 
     }
@@ -41,12 +61,28 @@ public class Backend {
 
         @Override
         public void handle(HttpExchange arg0) throws IOException {
-            String response = "This is search code";
-            arg0.sendResponseHeaders(200, response.length());
+            
+            // splitting url got to get url param
+            String queryGot = arg0.getRequestURI().toString().split("&query=")[1].replace("%20", " ");
+            // insert the query got into the database
+            queryManager.Insert_query(queryGot);
+            
+            // here you should return response objects in form of ResponseObject class made in this folder
+            Gson gson = new Gson();
+            // calling data base on array list
+            ArrayList<ResponseObject> res = new ArrayList<>();
+            String json = gson.toJson(res);
+            arg0.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            // will contain the search results after ranker
+            final String responseBody = "{\"list\" : " + json + "}";
+            final Headers headers = arg0.getResponseHeaders();
+            headers.set("Content-Type", String.format("application/json; charset=%s", StandardCharsets.UTF_8));
+            final byte[] rawResponseBody = responseBody.getBytes(StandardCharsets.UTF_8);
+            arg0.sendResponseHeaders(200, rawResponseBody.length);
+            arg0.getResponseBody().write(rawResponseBody);
+            arg0.close();
 
-            OutputStream os = arg0.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            
         }
 
     }
