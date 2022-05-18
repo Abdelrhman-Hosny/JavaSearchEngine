@@ -2,9 +2,7 @@ package Backend;
 
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import com.sun.net.httpserver.HttpServer;
 
-import Database.BaseDAO;
 import Database.DocumentDAO;
 import Database.QueryDAO;
 import Database.ResponseObject;
@@ -74,8 +71,16 @@ public class Backend {
         public void handle(HttpExchange arg0) throws IOException {
             
             // splitting url got to get url param
+            boolean isPhraseLevel = false ;
             String queryGot = arg0.getRequestURI().toString().split("&query=")[1].replace("%20", " ");
             // insert the query got into the database
+            String phrased = "";
+            if(queryGot.contains("%22")){
+                // therefore it has quoations
+                queryGot = queryGot.substring(3, queryGot.length()-3);
+                phrased = queryGot;
+                isPhraseLevel = true;
+            }
             queryManager.Insert_query(queryGot);
             // preprocessing on the query 
             queryGot = PreprocessorObj.stem(PreprocessorObj.removeStopwords(queryGot));
@@ -85,14 +90,24 @@ public class Backend {
             ArrayList<ResponseObject> res = new ArrayList<>();
             try {
                 Object[] entryArray = rankerObj.process(queryGot);
-                String finalWords = "(";
-                for (int i = 0; i < entryArray.length; i++) {
-                    finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
+                
+                ResultSet rs = null;
+                
+                if(isPhraseLevel == false){
+                    String finalWords = "(";
+                    for (int i = 0; i < entryArray.length; i++) {
+                        finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
+                    }
+                    int index = finalWords.lastIndexOf(',');
+                    finalWords = finalWords.substring(0,index);
+                    finalWords += ")";
+                    rs =documentManager.GetallDocumentswithUrls(finalWords);
                 }
-                int index = finalWords.lastIndexOf(',');
-                finalWords = finalWords.substring(0,index);
-                finalWords += ")";
-                ResultSet rs =documentManager.GetallDocumentswithUrls(finalWords);
+                else{
+                    // getting phrase level where just got documents that contain whole words written
+                    rs = documentManager.GetPhraseLevelDocumentswithUrls(phrased);
+                }
+
                 while(rs.next()){
                     res.add(new ResponseObject(rs.getString("document_name"), rs.getString("title"), rs.getString("snippet")));
                 }
