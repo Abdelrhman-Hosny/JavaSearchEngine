@@ -13,6 +13,9 @@ import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
 import {NgxPaginationModule} from 'ngx-pagination';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import {MatInputModule} from "@angular/material/input";
+import {MatAutocompleteModule} from "@angular/material/autocomplete";
+import {ReactiveFormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -31,7 +34,11 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     MatIconModule,
     HttpClientModule,
     NgxPaginationModule,
-    NgbModule
+    NgbModule,
+    MatInputModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule
+
 
   ],
   providers: [],

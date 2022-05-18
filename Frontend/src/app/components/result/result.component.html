@@ -7,9 +7,11 @@
 alt="logo" style="cursor:pointer">
      <div class="top-header-left-search">
        <div class="top-header-left-search-input">
-         <form #form="ngForm" (ngSubmit)="search(form)">
+         <form #form="ngForm" (ngSubmit)="search()">
 
-           <app-search rightIcon="true" ></app-search>
+           <app-search (valuechosen)= "acceptdata($event)" rightIcon="true" >
+
+           </app-search>
          </form>
 
      </div>

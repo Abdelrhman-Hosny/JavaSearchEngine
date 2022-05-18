@@ -1,10 +1,20 @@
 <div class="search-bar">
-<input type="text"
-       name="search_term"
-       [(ngModel)]="currentTermValue"
-       value="{{currentTermValue}}"
 
->
+  <input type="text" matInput [matAutocomplete]="auto" [formControl]="myControl"
+         name="search_term"
+         [(ngModel)]="currentTermValue"
+         value="{{currentTermValue}}"
+
+  >
+  <mat-autocomplete #auto="matAutocomplete">
+    <mat-option *ngFor="let item of filteredOptions|async" [value]="item">
+      {{item}}
+    </mat-option>
+  </mat-autocomplete>
+
+
+
+
   <div
  [ngClass]="{
  'right-icon':rightIcon=='true',

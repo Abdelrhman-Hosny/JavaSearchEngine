@@ -8,12 +8,12 @@
 <main>
   <img src="assets/google_logo.png"alt="logo">
   <div class="search-box">
-   <form #form="ngForm" (ngSubmit)="search(form)">
-   <app-search>rightIcon="false"</app-search>
+   <form #form="ngForm" (ngSubmit)="search()">
+   <app-search (valuechosen)="acceptdata($event)">  rightIcon="false"</app-search>
    </form>
   </div>
   <div class="g-buttons">
-    <button type ="button "(click)="search(form)">Google Search</button>
+    <button type ="button "(click)="search()">Google Search</button>
     <button type ="button ">I'm Feeling Lucky</button>
 </div>
 </main>

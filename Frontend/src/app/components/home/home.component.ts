@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {Router} from'@angular/router'
 import {NgForm} from "@angular/forms";
 @Component({
@@ -7,15 +7,18 @@ import {NgForm} from "@angular/forms";
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-
+  @Input() value :string | any;
   constructor(private router:Router) { }
 
   ngOnInit(): void {
   }
-  search(form:NgForm):void
+  search():void
   {
-    const{search_term}=form.value;
-    this.router.navigateByUrl('/results',{state:{term:search_term}}).then();
-  }
 
+    this.router.navigateByUrl('/results',{state:{term:this.value}}).then();
+  }
+acceptdata(data:any)
+{
+this.value=data;
+}
 }

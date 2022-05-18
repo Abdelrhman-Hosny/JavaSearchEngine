@@ -1,8 +1,8 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {GoogleResponse} from "../../GoogleResponse.model";
 import {Subscription} from "rxjs";
 import {SearchService} from "../../search.service";
-import {NgForm} from "@angular/forms";
+import {FormControl, NgForm} from "@angular/forms";
 import {Router} from "@angular/router";
 
 @Component({
@@ -11,7 +11,7 @@ import {Router} from "@angular/router";
   styleUrls: ['./result.component.scss']
 })
 export class ResultComponent implements OnInit,OnDestroy {
-
+  @Input() value :string | any;
   subs:Subscription[]=[];
   term: any;
   totalLength:any;
@@ -25,7 +25,6 @@ export class ResultComponent implements OnInit,OnDestroy {
     const {term} = history.state;
     this.term = term;
     if (term) {
-      console.log("term"+ term);
       this.subs.push
       (this.searchService.getSearchData(term).subscribe((data: GoogleResponse) => {
           this.results = data;
@@ -38,17 +37,20 @@ export class ResultComponent implements OnInit,OnDestroy {
   ngOnDestroy():void {
   this.subs.map(s=>s.unsubscribe());
 }
-  search(form:NgForm):void
+  search():void
   {
-      const{search_term}=form.value;
-      this.term=search_term
+    this.term=this.value
       this.subs.push
-      (this.searchService.getSearchData(search_term).subscribe((data: GoogleResponse) => {
+      (this.searchService.getSearchData(this.value).subscribe((data: GoogleResponse) => {
           this.results = data;
           this.totalLength = this.results?.items?.length
           this.page =1;
         })
       )
     }
+  acceptdata(data:any)
+  {
+    this.value=data;
+  }
 
 }
