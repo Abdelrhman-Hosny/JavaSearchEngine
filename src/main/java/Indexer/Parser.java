@@ -1,9 +1,7 @@
 package Indexer;
 
-import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
-
 import Preprocessing.Preprocessor;
 
 public class Parser {
@@ -35,7 +33,6 @@ public class Parser {
         
         Url = "AhmedEhab.com";//html.location();
         H1 = processTextBlock(html.select("h1").text()); // will select h1 and remove all symbols from it
-        System.out.println("H1" + H1);
         H2 = processTextBlock(html.select("h2").text());
         H3 = processTextBlock(html.select("h3").text());
         remainingHeaders = processTextBlock(html.select("h4,h5,h6").text());

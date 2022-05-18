@@ -42,7 +42,7 @@ public class Crawler {
             seedArray = CrawlerUtils.loadToVisit(toVisitPath, numThreads);
             globalToVisit = seedArray.get(0);
             for (int i = 1; i < numThreads; i++) {
-               globalToVisit.addAll(seedArray.get(i));
+                globalToVisit.addAll(seedArray.get(i));
             }
 
         } else {
@@ -103,6 +103,7 @@ public class Crawler {
         }
 
     }
+
     private static boolean compareFiles(HashSet<String> paths, Document doc) {
         // return true if file already exists
         // false if it is a new file
@@ -155,7 +156,7 @@ public class Crawler {
             while (!localToVisit.isEmpty() && globalVisited.size() < MAX_DOCS) {
 
                 String url = localToVisit.iterator().next();
-                synchronized(globalToVisit) {
+                synchronized (globalToVisit) {
                     localToVisit.remove(url);
                     globalToVisit.remove(url);
                 }
@@ -164,8 +165,7 @@ public class Crawler {
                     try {
 
                         crawlURL(url);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         System.out.println("Error crawling url: " + url);
                     }
                 }
@@ -178,7 +178,7 @@ public class Crawler {
             // reading HTML document from given URL
 
             // Check for Robots.txt
-            synchronized(robotsChecker) {
+            synchronized (robotsChecker) {
                 if (!robotsChecker.check(url))
                     return;
             }
@@ -242,10 +242,8 @@ public class Crawler {
                         e.printStackTrace();
                     }
 
-
                     paths.add(filePath);
                     checksumPathMap.put(checksum, paths);
-
 
                     globalVisited.add(url);
                 }
@@ -272,7 +270,11 @@ public class Crawler {
                 pageDegreeBufferedWriter = null;
             }
 
-            if (pageDegreeBufferedWriter != null) pageDegreeBufferedWriter.write(url + "\t");
+            synchronized (globalToVisit) {
+                if (pageDegreeBufferedWriter != null)
+                    pageDegreeBufferedWriter.write(url + "\t");
+            }
+
             for (Element link : links) {
 
                 String relative_link = link.attr("href").toLowerCase();
@@ -283,22 +285,30 @@ public class Crawler {
                 if (!abs_link.startsWith("http"))
                     continue;
 
-                if (pageDegreeBufferedWriter != null) pageDegreeBufferedWriter.write(abs_link + "\t");
-                // check if link already visited or forbidden by robots.txt
-                if (!globalVisitedRuined.contains(abs_link) && !globalVisited.contains(abs_link) && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
-                    localToVisit.add(abs_link);
-                    globalToVisit.add(abs_link);
-                    if (toVisitBufferedWriter != null) toVisitBufferedWriter.write(abs_link + "\n");
+                synchronized (globalToVisit) {
+                    if (pageDegreeBufferedWriter != null)
+                        pageDegreeBufferedWriter.write(abs_link + "\t");
+
+                    // check if link already visited or forbidden by robots.txt
+                    if (!globalVisitedRuined.contains(abs_link) && !globalVisited.contains(abs_link)
+                            && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
+                        localToVisit.add(abs_link);
+                        globalToVisit.add(abs_link);
+                        if (toVisitBufferedWriter != null)
+                            toVisitBufferedWriter.write(abs_link + "\n");
+                    }
+
                 }
-
-
             }
-            if (pageDegreeBufferedWriter != null){
-                pageDegreeBufferedWriter.write("\n");
+            if (pageDegreeBufferedWriter != null) {
+                synchronized (globalToVisit) {
+                    pageDegreeBufferedWriter.write("\n");
+                }
                 pageDegreeBufferedWriter.close();
             }
 
-            if (toVisitBufferedWriter != null) toVisitBufferedWriter.close();
+            if (toVisitBufferedWriter != null)
+                toVisitBufferedWriter.close();
 
         }
 

@@ -18,4 +18,7 @@ public final class Constants {
     public static final String VISITED_SAVE_FILE = "visitedURLs.txt";
     public static final String TO_VISIT_SAVE_FILE = "toVisitURLs.txt";
     public static final String PAGE_DEGREE_SAVE_FILE = "pageDegree.txt";
+    public static final double spamPercentage = 0.4; // if certain word exceed that percentage report spam
+    public static final int documentSizeThreshold = 100;
+    public static final int numThreadsIndexer = 5;
 }
