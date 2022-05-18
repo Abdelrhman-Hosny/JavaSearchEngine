@@ -4,6 +4,7 @@ import {environment} from "../environments/environment";
 import { Observable} from "rxjs";
 import{map} from 'rxjs/operators'
 import { AutoCompleteObject } from './AutoCompleteObject';
+import { ResponseObjects } from './ResponesObjects';
 
 
 
@@ -19,9 +20,9 @@ export class SearchService {
   
   constructor(private httpClient:HttpClient) {
   }
-  getSearchData(searchTerm:string):Observable<String>
+  getSearchData(searchTerm:string):Observable<ResponseObjects>
   {
-    const res = this.httpClient.get<String>(this.Search_url+"&query=" + searchTerm);
+    const res = this.httpClient.get<ResponseObjects>(this.Search_url+"&query=" + searchTerm);
     return res; 
   }
 
