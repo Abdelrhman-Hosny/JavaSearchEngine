@@ -6,7 +6,7 @@ import Indexer.Word;
 
 public class IndexerDAO extends BaseDAO {
     
-    public boolean InsertWordIndex(HashMap<String,Word> allWords , String url) {
+    public boolean InsertWordIndex(HashMap<String,Word> allWords , String url, int documentSize) {
         try {
             // since we can do incremental update
             // so we need to check that we delete url before working due to some reasons:
@@ -15,12 +15,12 @@ public class IndexerDAO extends BaseDAO {
             delete_rollBack_Url(url);
        
             CallableStatement cstmt;
-            cstmt = connection.prepareCall("{call Add_Index_Entry(?,?,?,?,?,?,?,?,?)}");
+            cstmt = connection.prepareCall("{call AddIndex_Entry(?,?,?,?,?,?,?,?,?,?)}");
             for (String key : allWords.keySet()) {
 
                 // values (@inWord,@inDocument_name,@inTitle,
                 // @inH1,@inH2,@inH3,@inH4,@inBold,@inText);
-
+                
                 cstmt.setString(1, key);
                 cstmt.setString(2, url);
                 cstmt.setInt(3, allWords.get(key).title);
@@ -30,6 +30,7 @@ public class IndexerDAO extends BaseDAO {
                 cstmt.setInt(7, allWords.get(key).h4_6);
                 cstmt.setInt(8, allWords.get(key).bold);
                 cstmt.setInt(9, allWords.get(key).text);
+                cstmt.setFloat(10, allWords.get(key).count /(float) documentSize );
 
                 if(cstmt.execute()){
                     cstmt.close();
@@ -59,5 +60,11 @@ public class IndexerDAO extends BaseDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    public static void main(String[] args) {
+        IndexerDAO in = new IndexerDAO();
+        HashMap<String,Word> h = new HashMap<>();
+        h.put("ahmed", new Word("inWord", "inDocument"));
+        in.delete_rollBack_Url("www.url.com");
     }
 }
