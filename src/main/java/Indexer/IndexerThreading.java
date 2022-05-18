@@ -51,7 +51,7 @@ public class IndexerThreading {
         HashMap<String, HashSet<String>> x = ut.cleanPageDegreeFile(CRAWLER_PROGRESS_PATH + PAGE_DEGREE_SAVE_FILE);
         HashMap<String,Double> pageRank = rankerObj.calculatePageRank(x,ut.getInPageMap(x));
         rankerObj.uploadPageRank(pageRank);
-        Ranker.rankerDB.CloseConnection();
+        rankerObj.rankerDB.CloseConnection();
     }
     
 }
