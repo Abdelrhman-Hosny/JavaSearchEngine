@@ -45,7 +45,8 @@ public class QueryDAO extends BaseDAO {
             List<String> words = new ArrayList<String>();
             // list of queries to be returned
             while(rs.next()){
-                words.add(rs.getString("query"));
+                // added quotations to make json
+                words.add('\"'+rs.getString("query")+'\"');
             }
             // cleaning up
             rs.close();
@@ -59,21 +60,21 @@ public class QueryDAO extends BaseDAO {
         return null;
     }
 
-    public static void main(String[] args) {
-        QueryDAO querying = new QueryDAO();
-        // querying.Insert_query("Real Madrid");
-        // querying.Insert_query("Barclona");
-        // querying.Insert_query("Barcelona");
+    // public static void main(String[] args) {
+    //     QueryDAO querying = new QueryDAO();
+    //     // querying.Insert_query("Real Madrid");
+    //     // querying.Insert_query("Barclona");
+    //     // querying.Insert_query("Barcelona");
 
         
-        List<String> result=  querying.Retrieve_query("Bar");
-        if(result != null){
-            // check if its not null
-            System.out.println(result);
-        }
+    //     List<String> result=  querying.Retrieve_query("Bar");
+    //     if(result != null){
+    //         // check if its not null
+    //         System.out.println(result);
+    //     }
         
-        // TODO :: NEED TO HANDLE CLOSING CONNECTION !!!!!!
-        querying.CloseConnection();
+    //     // TODO :: NEED TO HANDLE CLOSING CONNECTION !!!!!!
+    //     querying.CloseConnection();
 
-    }
+    // }
 }
