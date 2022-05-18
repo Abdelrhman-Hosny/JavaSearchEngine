@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {Router} from'@angular/router'
-import {NgForm} from "@angular/forms";
+import {Router} from'@angular/router';
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -17,8 +17,8 @@ export class HomeComponent implements OnInit {
 
     this.router.navigateByUrl('/results',{state:{term:this.value}}).then();
   }
-acceptdata(data:any)
-{
-this.value=data;
-}
+  acceptdata(data:any)
+  {
+  this.value=data;
+  }
 }
