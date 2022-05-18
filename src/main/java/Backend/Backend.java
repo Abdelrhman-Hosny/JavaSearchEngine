@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import com.sun.net.httpserver.HttpServer;
 
+import Database.BaseDAO;
 import Database.DocumentDAO;
 import Database.QueryDAO;
 import Database.ResponseObject;
+import Preprocessing.Preprocessor;
 import Ranker.Ranker;
 import Ranker.Ranker.Entry;
 
@@ -25,10 +27,11 @@ import com.sun.net.httpserver.HttpHandler;
 
 public class Backend {
 
-    
+
     static QueryDAO queryManager = new QueryDAO();
     static DocumentDAO documentManager = new DocumentDAO();
     static Ranker rankerObj = new Ranker();
+    static Preprocessor PreprocessorObj = new Preprocessor();
     public static void main(String[] args) throws IOException {
         int port = 8080;
         
@@ -74,7 +77,8 @@ public class Backend {
             String queryGot = arg0.getRequestURI().toString().split("&query=")[1].replace("%20", " ");
             // insert the query got into the database
             queryManager.Insert_query(queryGot);
-            
+            // preprocessing on the query 
+            queryGot = PreprocessorObj.stem(PreprocessorObj.removeStopwords(queryGot));
             // here you should return response objects in form of ResponseObject class made in this folder
             Gson gson = new Gson();
             // calling data base on array list
@@ -97,7 +101,12 @@ public class Backend {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            String json = gson.toJson(res);
+            String json = "{}";
+            if(res.size()!=0){
+                json = gson.toJson(res);
+                System.out.println("json" + json);
+            }
+            
             arg0.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
             // will contain the search results after ranker
             final String responseBody = "{\"list\" : " + json + "}";

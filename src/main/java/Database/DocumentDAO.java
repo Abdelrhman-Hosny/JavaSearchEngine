@@ -1,12 +1,9 @@
 package Database;
 
-import java.io.IOException;
-import java.sql.CallableStatement;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import Ranker.Ranker;
-import Ranker.Ranker.Entry;
 
 
 public class DocumentDAO extends BaseDAO{
