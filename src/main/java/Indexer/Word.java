@@ -22,6 +22,7 @@ public class Word {
         h4_6 = 0;
         text = 0;
         bold = 0;
+        count = 0;
     }
     public void Increment(BlockCategories Category){
         // take Category enum

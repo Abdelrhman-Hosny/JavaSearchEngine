@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
+import Database.RankerDAO;
+
 
 public class documentRank implements Runnable {
 
@@ -20,7 +22,7 @@ public class documentRank implements Runnable {
     protected int h4Weight = 3;
     protected int boldWeight = 2;
     protected int textWeight = 1;
-
+    protected RankerDAO rankerDB = new RankerDAO();
 
     public documentRank(ArrayList<String> shareOfDocs, String[] sQ, PriorityQueue<Ranker.Entry> q, int countTotalNumberOfDocuments)
     {
@@ -37,12 +39,12 @@ public class documentRank implements Runnable {
 
             for (int i = 0; i < searchQuery.length; i++) {
                 //getting tf of word
-                String queryTf = "SELECT title,h1,h2,h3,h4,bold,text,tf_idf as tf" +
-                        " FROM " + Ranker.documentWordTable +
-                        " where word = '" + searchQuery[i] + "'" +
-                        " and document_name = '" + currentDocument + "'";
+                // String queryTf = "SELECT title,h1,h2,h3,h4,bold,text,tf_idf as tf" +
+                //         " FROM " + Ranker.documentWordTable +
+                //         " where word = '" + searchQuery[i] + "'" +
+                //         " and document_name = '" + currentDocument + "'";
                 //System.out.println(queryTf);
-                ResultSet rsWordTF = Ranker.createQuery(Ranker.conn, queryTf);
+                ResultSet rsWordTF = rankerDB.SearchWordIndex(searchQuery[i], currentDocument);
                 int h1 = 0;
                 int h2 = 0;
                 int h3 = 0;
@@ -77,22 +79,7 @@ public class documentRank implements Runnable {
                 current_tf = current_tf*finalWeights;
                 //------------------------------------------------------------------------
                 //getting idf of word
-                String getNumberDocumentsForWord = "select count(distinct document_name) as total from " + Ranker.documentWordTable
-                        + " where word = '" + searchQuery[i] + "'";
-                ResultSet rsWordIDF = Ranker.createQuery(Ranker.conn, getNumberDocumentsForWord);
-                int countWordInWeb = 0;
-                while (true) {
-                    try {
-                        if (!rsWordIDF.next()) break;
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        countWordInWeb = rsWordIDF.getInt("total");
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
+                int countWordInWeb = rankerDB.getNumberOfDocumentsForWord(searchQuery[i]);
                 //System.out.println("Current word idf is " + countWordInWeb);
                 //--------------------------------------------------------------------------
                 double idfOfWord = Math.log((double) countTotalNumberOfDocuments / (double) countWordInWeb);
