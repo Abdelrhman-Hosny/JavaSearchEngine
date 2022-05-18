@@ -25,6 +25,7 @@ public class Crawler {
     RobotsChecker robotsChecker;
     public final String VisitedFilePath = CRAWLER_PROGRESS_PATH + VISITED_SAVE_FILE;
     public final String toVisitPath = CRAWLER_PROGRESS_PATH + TO_VISIT_SAVE_FILE;
+    public final String pageDegreeFilePath = CRAWLER_PROGRESS_PATH + PAGE_DEGREE_SAVE_FILE;
 
     Crawler(int numThreads, String seedPath, boolean loadOldProgress) {
         this.numThreads = numThreads;
@@ -55,6 +56,10 @@ public class Crawler {
                 file.delete();
             }
             file = new File(toVisitPath);
+            if (file.exists()) {
+                file.delete();
+            }
+            file = new File(pageDegreeFilePath);
             if (file.exists()) {
                 file.delete();
             }
@@ -208,7 +213,7 @@ public class Crawler {
                     try {
                         fw = new FileWriter(VisitedFilePath, true);
                         BufferedWriter bw = new BufferedWriter(fw);
-                        bw.write(url + " " + filePath + "\n");
+                        bw.write(url + "\t" + filePath + "\n");
                         bw.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -226,11 +231,12 @@ public class Crawler {
                         globalVisitedRuined.add(url);
                         return;
                     }
+
                     FileWriter fw;
                     try {
                         fw = new FileWriter(VisitedFilePath, true);
                         BufferedWriter bw = new BufferedWriter(fw);
-                        bw.write(url + " " + filePath + "\n");
+                        bw.write(url + "\t" + filePath + "\n");
                         bw.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -247,15 +253,26 @@ public class Crawler {
 
             // get all links from document
             Elements links = doc.getElementsByTag("a");
-            FileWriter fw;
-            BufferedWriter bw;
+            FileWriter toVisitWriter, pageDegreeWriter;
+            BufferedWriter toVisitBufferedWriter, pageDegreeBufferedWriter;
             try {
-                fw = new FileWriter(toVisitPath, true);
-                bw = new BufferedWriter(fw);
+                toVisitWriter = new FileWriter(toVisitPath, true);
+                toVisitBufferedWriter = new BufferedWriter(toVisitWriter);
             } catch (IOException e) {
                 e.printStackTrace();
-                bw = null;
+                toVisitBufferedWriter = null;
             }
+
+            try {
+
+                pageDegreeWriter = new FileWriter(pageDegreeFilePath, true);
+                pageDegreeBufferedWriter = new BufferedWriter(pageDegreeWriter);
+            } catch (IOException e) {
+
+                pageDegreeBufferedWriter = null;
+            }
+
+            if (pageDegreeBufferedWriter != null) pageDegreeBufferedWriter.write(url + "\t");
             for (Element link : links) {
 
                 String relative_link = link.attr("href").toLowerCase();
@@ -270,12 +287,18 @@ public class Crawler {
                 if (!globalVisitedRuined.contains(abs_link) && !globalVisited.contains(abs_link) && !url.equals(abs_link) && !globalToVisit.contains(abs_link)) {
                     localToVisit.add(abs_link);
                     globalToVisit.add(abs_link);
-                    if (bw != null) bw.write(abs_link + "\n");
+                    if (toVisitBufferedWriter != null) toVisitBufferedWriter.write(abs_link + "\n");
+                    if (pageDegreeBufferedWriter != null) pageDegreeBufferedWriter.write(abs_link + "\t");
                 }
 
+
+            }
+            if (pageDegreeBufferedWriter != null){
+                pageDegreeBufferedWriter.write("\n");
+                pageDegreeBufferedWriter.close();
             }
 
-            if (bw != null) bw.close();
+            if (toVisitBufferedWriter != null) toVisitBufferedWriter.close();
 
         }
 
