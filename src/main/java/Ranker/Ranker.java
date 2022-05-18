@@ -4,30 +4,15 @@ import java.io.IOException;
 import java.lang.Math;
 import java.util.*;
 
+import Database.RankerDAO;
 import Utils.Utils;
 import static Constants.Constants.*;
 
 public class Ranker {
     //here we will define some general variables that we will change locally
 
-
-    public static String SQLurl = "jdbc:sqlserver://DESKTOP-V25J5E2\\SQLEXPRESS:1433;databaseName=test;integratedSecurity=true;"                        + "encrypt=true;"
-            + "trustServerCertificate=true;"
-            + "encrypt=false;";
-    public static String username = "sa";
-    public static String pass = "123456789";
-    public static Connection conn;
-
-    //word_document table info
-    public String wordTableName = "WORD_DOCUMENT";
-    public static String documentWordTable = "DOCUMENT_WORD";
-    //document table info
-    String documentTableName = "document_data";
-    String documentTableIdColumn = "id";
+    public static RankerDAO rankerDB = new RankerDAO();
     public static int numberOfThreads = 4;
-
-
-
 
     //this will be used in the priority queue
     public static class Entry {
@@ -169,30 +154,17 @@ public class Ranker {
             createInsertQuery(conn, queryAddtoDB);
         }
     }
-    public static void uploadPageRank(Connection conn) throws IOException
+    public static void uploadPageRank() throws IOException
     {
         Utils ut = new Utils();
         HashMap<String, HashSet<String>> x = ut.cleanPageDegreeFile(CRAWLER_PROGRESS_PATH + PAGE_DEGREE_SAVE_FILE);
         HashMap<String,Double> pageRank = calculatePageRank(x,ut.getInPageMap(x));
-        addPageRankToDB(conn, pageRank);
+        // calling ranker on db
+        rankerDB.addPageRank(pageRank);
 
     }
 
-    public static ResultSet createQuery(Connection conn, String query)  {
-        Statement stmt = null;
-        try {
-            stmt = conn.createStatement();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            return stmt.executeQuery(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return (ResultSet) e;
-        }
-
-    }
+    
 
 
     public static void main(String args[]) throws SQLException, InterruptedException, IOException {
@@ -202,8 +174,7 @@ public class Ranker {
         String search = "football keka";
         String[] searchQuery = search.split(" ");
         //for each word we will compute term frequency
-        Ranker.conn = DriverManager.getConnection(Ranker.SQLurl,Ranker.username,Ranker.pass);
-        System.out.println("connected");
+        
         //add all these words in one statement
         PriorityQueue<Entry> rankerResult = new PriorityQueue<Entry>(new Comparator<Ranker.Entry>() {
             @Override
@@ -217,9 +188,7 @@ public class Ranker {
             }
         });
         
-        uploadPageRank(conn);
-
-
+        uploadPageRank();
 
         //first we get all documents where all these words appears
         String finalWords = "(";
@@ -229,35 +198,19 @@ public class Ranker {
         int index = finalWords.lastIndexOf(',');
         finalWords = finalWords.substring(0,index);
         finalWords += ")";
-
         System.out.println(finalWords);
         //we are going to assume for two words at least to appear
 
-        String queryGetDocumentsWhereAllWordsAppears = "SELECT  document_name" +
-                " FROM " + Ranker.documentWordTable +
-                " where word in " + finalWords +
-                " GROUP BY document_name" +
-                " HAVING COUNT(*) > 1;";
-        ResultSet rsDocumentsWhereAllWordsAppears = createQuery(conn,queryGetDocumentsWhereAllWordsAppears);
+        ResultSet rsDocumentsWhereAllWordsAppears = rankerDB.GetDocumentsWhereAllWordsAppears(finalWords);
 //        String[] mainDocuments = new String[100];
         ArrayList<String> mainDocuments = new ArrayList<String>();
-
 
         while (rsDocumentsWhereAllWordsAppears.next()) {
             mainDocuments.add(rsDocumentsWhereAllWordsAppears.getString("document_name"));
         }
 
-
-        
-
-
         //first step is to calculate total number of documents
-        String getTotalNumberOfDocuments = "select count( distinct document_name) as numberOfDocuments from DOCUMENT_WORD ";
-        ResultSet rsTotalNumberOfDocuments = createQuery(conn,getTotalNumberOfDocuments);
-        int countTotalNumberOfDocuments = 0;
-        while (rsTotalNumberOfDocuments.next()) {
-            countTotalNumberOfDocuments = rsTotalNumberOfDocuments.getInt("numberOfDocuments");
-        }
+        int countTotalNumberOfDocuments = rankerDB.getTotalNumberOfDocument();
         System.out.println("Total number of documents is " + countTotalNumberOfDocuments);
 
         //-----------------------------------------------------------------------------------------------------------
