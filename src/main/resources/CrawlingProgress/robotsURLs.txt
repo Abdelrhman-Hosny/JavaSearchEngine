@@ -1,0 +1,6 @@
+https://www.tutorialspoint.com/robots.txt
+https://www.geeksforgeeks.org/robots.txt
+https://www.github.com/robots.txt
+https://www.tabnine.com/robots.txt
+https://github.com/robots.txt
+https://www.facebook.com/robots.txt
