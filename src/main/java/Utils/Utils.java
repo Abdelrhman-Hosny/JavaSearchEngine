@@ -75,7 +75,8 @@ public class Utils {
                     System.out.println(s + " " + x.get(s));
                 }
             }
-            System.out.println(utils.getInCount(x).size());
+            System.out.println("Count in\n\n");
+            System.out.println(utils.getInCount(x));
         } catch (IOException e) {
             e.printStackTrace();
         }
