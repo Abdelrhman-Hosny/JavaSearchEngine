@@ -6,11 +6,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.print.Doc;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -55,12 +57,36 @@ public class CrawlerUtils {
         return checksum.getValue();
 
     }
+    
     public static HashSet<String> ReadInitialSeed(String filePath) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(filePath));
 
         lines.replaceAll(url -> NormalizeUrl(url));
         return new HashSet<>(lines);
     }
+
+
+    public static ArrayList<HashSet<String>> ReadInitialSeed(String filePath, int numThreads) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(filePath));
+
+        
+        lines.replaceAll(url -> NormalizeUrl(url));
+
+
+        ArrayList<HashSet<String>> seedArray = new ArrayList<>();
+
+        for (int i = 0; i < numThreads; i++) {
+
+            seedArray.add(new HashSet<>());
+        }
+
+        for (int i = 0; i < lines.size(); i++) {
+            seedArray.get(i % numThreads).add(lines.get(i));
+        }
+
+        return seedArray;
+    }
+
 
     public static String NormalizeUrl(String url) {
         // remove spaces and make it lowercase
@@ -95,8 +121,7 @@ public class CrawlerUtils {
 
             document = connection.get();
         } catch (IOException e) {
-            System.out.println("Error: " );
-            e.printStackTrace();
+            System.out.println("Error crawling : " + url);
             return null;
         }
 
@@ -138,5 +163,42 @@ public class CrawlerUtils {
 //        System.out.println(document.text().length());
     }
 
-}
+    public static HashSet<String> loadVisited(String visitedFilePath) {
+        HashSet<String> visited = new HashSet<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(visitedFilePath));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                visited.add(line.split(" ")[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return visited;
+    }
+
+    public static ArrayList<HashSet<String>> loadToVisit(String toVisitPath, int numThreads) {
+        ArrayList<HashSet<String>> toVisit = new ArrayList<>();
+        for (int i = 0; i < numThreads; i++) {
+            toVisit.add(new HashSet<>());
+        }
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(toVisitPath));
+            String line;
+            int i = 0;
+            while ((line = reader.readLine()) != null) {
+                toVisit.get(i % numThreads).add(line);
+                i++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return toVisit;
+    }
+
+    }
+
 
