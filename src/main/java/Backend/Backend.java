@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.sun.net.httpserver.HttpServer;
 
+import Database.BaseDAO;
 import Database.DocumentDAO;
 import Database.QueryDAO;
 import Database.ResponseObject;
