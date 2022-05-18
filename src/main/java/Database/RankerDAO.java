@@ -83,6 +83,26 @@ public class RankerDAO extends BaseDAO {
             return (ResultSet) e;
         }
     }
+
+    public double getDocumentRank(String doc)
+    {
+        CallableStatement cstmt;
+        try {
+
+
+            cstmt = connection.prepareCall("{call getPageRank(?)}");
+            cstmt.setString(1, doc);
+
+            ResultSet rs =  cstmt.executeQuery(); // return resultSet
+            while(rs.next())
+                return (double)rs.getFloat("page_rank") ;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+        return 0 ;
+    }
+
     public void addPageRank(HashMap<String,Double> pageRank){
         try {
             // since we can do incremental update
@@ -106,8 +126,8 @@ public class RankerDAO extends BaseDAO {
         }
     }
 
-    public static void main(String[] args) {
-        RankerDAO rk = new RankerDAO();
-        System.out.println(rk.getTotalNumberOfDocument());
-    }
+    // public static void main(String[] args) {
+        // RankerDAO rk = new RankerDAO();
+        // System.out.println(rk.getDocumentRank("https://www.facebook.com/tabnineinc"));
+    // }
 }
