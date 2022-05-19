@@ -13,36 +13,35 @@ import Utils.Utils;
 
 public class PhraseLevel {
 
-    public ArrayList<Entry> getPhraseLevel(ArrayList<Entry> urlArrayEntry, String sentence) throws IOException {
+    public Object[] getPhraseLevel(Object[] urlArrayEntry, String sentence) throws IOException {
         
         ArrayList<String> urlArray = new ArrayList<>();
-        for(int i=0;i<urlArrayEntry.size();i++)
+        for(int i=0;i<urlArrayEntry.length;i++)
         {
-            urlArray.add(urlArrayEntry.get(i).getKey());
+            urlArray.add(((Entry)urlArrayEntry[i]).getKey());
         }
 
         Utils utils = new Utils();
         HashMap<String, String> urlPathMap = utils.getUrlPathMap();
 
         ArrayList<Integer> takenIndices = new ArrayList<>();
+        ArrayList<Object> newResults = new ArrayList<>();
+        
+
         for (int i = 0; i < urlArray.size(); i++) {
            if (!urlPathMap.containsKey(urlArray.get(i)))
                 continue;
            
-           File file = new File(urlArray.get(i));
+           File file = new File(urlPathMap.get(urlArray.get(i)));
+           
            Document doc = Jsoup.parse(file, "UTF-8");
-
-            if (doc.body().text().contains(sentence) || doc.title().contains(sentence)) {
-                takenIndices.add(i);
+            if (doc.body().text().toLowerCase().contains(sentence) || doc.title().toLowerCase().contains(sentence)) {
+                // takenIndices.add(i);
+                newResults.add(new Entry(((Entry)urlArrayEntry[i]).getKey(), ((Entry)urlArrayEntry[i]).getValue()));
             }
         }
-        ArrayList<Entry> newResults = new ArrayList<>();
-        for(int i=0;i<takenIndices.size();i++)
-        {
-            newResults.add(new Entry(urlArrayEntry.get(i).getKey(), urlArrayEntry.get(i).getValue()));
-        }
-
-        return newResults;
+        
+        return newResults.toArray();
     }
     
 }

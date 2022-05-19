@@ -14,6 +14,7 @@ import Database.BaseDAO;
 import Database.DocumentDAO;
 import Database.QueryDAO;
 import Database.ResponseObject;
+import PhraseLevel.PhraseLevel;
 import Preprocessing.Preprocessor;
 import Ranker.Ranker;
 import Ranker.Ranker.Entry;
@@ -101,18 +102,29 @@ public class Backend {
                 else{
                     // getting phrase level where just got documents that contain whole words written
                     entryArray = rankerObj.process(phrased,true);
+                    System.out.println("before " + entryArray.length);
                     //filtering
+                    PhraseLevel PhraseLevelObj = new PhraseLevel();
+                    try {
+                        entryArray = PhraseLevelObj.getPhraseLevel(entryArray, phrased);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    System.out.println("after " + entryArray.length);
                 }
                 String finalWords = "(";
-                for (int i = 0; i < entryArray.length; i++) {
-                    finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
-                }
-                int index = finalWords.lastIndexOf(',');
-                finalWords = finalWords.substring(0,index);
-                finalWords += ")";
-                rs =documentManager.GetallDocumentswithUrls(finalWords);
-                while(rs.next()){
-                    res.add(new ResponseObject(rs.getString("document_name"), rs.getString("title"), rs.getString("snippet")));
+                if(entryArray.length !=0){
+                    for (int i = 0; i < entryArray.length; i++) {
+                        finalWords += "'"+ ((Entry) entryArray[i]).getKey() +"'"+ ",";
+                    }
+                    
+                    int index = finalWords.lastIndexOf(',');
+                    finalWords = finalWords.substring(0,index);
+                    finalWords += ")";
+                    rs =documentManager.GetallDocumentswithUrls(finalWords);
+                    while(rs.next()){
+                        res.add(new ResponseObject(rs.getString("document_name"), rs.getString("title"), rs.getString("snippet")));
+                    }    
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
