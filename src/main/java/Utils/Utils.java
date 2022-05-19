@@ -18,6 +18,22 @@ public class Utils {
     public void readAllLines() throws IOException{
         lines = Files.readAllLines(Paths.get(CRAWLER_PROGRESS_PATH + VISITED_SAVE_FILE));
     }
+
+    public HashMap<String, String> getUrlPathMap() throws IOException
+    {
+        HashMap<String, String> urlPathMap = new HashMap<>();
+        
+        readAllLines();
+
+        for (String line : lines)
+        {
+            String[] parts = line.split("\t");
+            urlPathMap.put(parts[0], parts[1]);
+        }
+
+        return urlPathMap;
+        
+    }
     public HashMap<String, HashSet<String>> cleanPageDegreeFile(String filePath) throws IOException {
 
         HashMap<String, HashSet<String>> pageDegreeMap = new HashMap<>();
